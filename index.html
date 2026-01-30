@@ -8,12 +8,16 @@
         :root { --bg: #f2f2f7; --card: #fff; --text: #000; --blue: #007aff; --red: #ff3b30; --gray: #8e8e93; }
         [data-theme="dark"] { --bg: #000; --card: #1c1c1e; --text: #fff; }
         
-        body { background: var(--bg); color: var(--text); font-family: -apple-system, sans-serif; margin: 0; padding: 16px; padding-bottom: 80px; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--text); font-family: -apple-system, sans-serif; margin: 0; padding: 16px; padding-bottom: 90px; -webkit-tap-highlight-color: transparent; }
         
+        /* Баланс */
         .balance-card { background: linear-gradient(135deg, #007aff, #0056b3); color: white; padding: 20px; border-radius: 16px; text-align: center; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,122,255,0.3); }
         .balance-amount { font-size: 36px; font-weight: 800; margin-top: 5px; }
 
-        .card { background: var(--card); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+        /* Карточки и инпуты */
+        .card { background: var(--card); border-radius: 12px; padding: 16px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; }
+        .card-col { display: block; width: 100%; } /* Для форм */
+        
         input { width: 100%; padding: 12px; border-radius: 8px; border: none; background: var(--bg); color: var(--text); font-size: 16px; outline: none; margin-top: 5px; box-sizing: border-box; }
         label { font-size: 12px; color: var(--gray); margin-left: 4px; }
         
@@ -22,13 +26,22 @@
         .btn-inc { background: var(--blue); }
         .btn-exp { background: var(--red); }
 
-        /* Элемент истории */
-        .history-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(128,128,128,0.1); }
+        /* Кнопки настроек */
+        .setting-row { display: flex; align-items: center; width: 100%; }
+        .setting-icon { font-size: 22px; margin-right: 15px; }
+        .setting-text { font-size: 16px; font-weight: 500; flex-grow: 1; }
+        .setting-status { font-size: 14px; color: var(--gray); }
+
+        /* Элементы истории */
+        .history-list { margin-top: 20px; }
+        .history-header { font-size: 18px; font-weight: 700; margin-bottom: 10px; margin-left: 5px; }
+        .history-item { background: var(--card); padding: 12px 16px; border-radius: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
         .h-left { display: flex; flex-direction: column; }
         .h-val { font-weight: 700; font-size: 15px; }
-        .h-desc { font-size: 12px; opacity: 0.7; }
-        .del-btn { background: none; border: none; font-size: 18px; cursor: pointer; padding: 5px; opacity: 0.6; }
+        .h-desc { font-size: 12px; opacity: 0.7; margin-top: 2px; }
+        .del-btn { background: rgba(255, 59, 48, 0.1); color: var(--red); border: none; font-size: 18px; cursor: pointer; padding: 8px; border-radius: 8px; }
 
+        /* Таббар */
         .tab-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card); border-top: 0.5px solid var(--gray); display: flex; justify-content: space-around; padding: 10px 0 25px; z-index: 100; }
         .tab-item { color: var(--gray); text-align: center; font-size: 10px; cursor: pointer; }
         .tab-item.active { color: var(--blue); }
@@ -51,33 +64,50 @@
     </div>
 
     <div id="view-income" class="view-section active">
-        <div class="card">
+        <div class="card card-col">
             <label>Сумма</label><input type="number" id="inc_sum" placeholder="0.00" inputmode="decimal">
             <div style="height:10px"></div>
             <label>Откуда</label><input type="text" id="inc_from" placeholder="Банк">
             <div style="height:10px"></div>
             <label>Куда</label><input type="text" id="inc_to" placeholder="Касса">
         </div>
-        <button class="btn btn-inc" onclick="send('income')">Добавить</button>
+        <button class="btn btn-inc" onclick="send('income')">Добавить Приход</button>
     </div>
 
     <div id="view-expense" class="view-section">
-        <div class="card">
+        <div class="card card-col">
             <label>Сумма</label><input type="number" id="exp_sum" placeholder="0.00" inputmode="decimal">
             <div style="height:10px"></div>
             <label>Категория</label><input type="text" id="exp_cat" placeholder="Еда">
             <div style="height:10px"></div>
             <label>Комментарий</label><input type="text" id="exp_com" placeholder="Обед">
         </div>
-        <button class="btn btn-exp" onclick="send('expense')">Списать</button>
+        <button class="btn btn-exp" onclick="send('expense')">Списать Расход</button>
     </div>
 
     <div id="view-history" class="view-section">
-        <div class="card" id="history-list">
-            <div style="text-align:center; padding:20px; color:gray">Загрузка...</div>
+        
+        <div class="card" onclick="toggleTheme()">
+            <div class="setting-row">
+                <span class="setting-icon">🌓</span>
+                <span class="setting-text">Тема оформления</span>
+                <span class="setting-status" id="theme-status">Авто</span>
+            </div>
         </div>
-        <div class="card" onclick="tg.sendData(JSON.stringify({action:'download_excel'}))">
-            <div style="color:var(--blue); font-weight:600; text-align:center">📥 Скачать Excel</div>
+
+        <div class="card" onclick="downloadExcel()">
+            <div class="setting-row">
+                <span class="setting-icon">📥</span>
+                <span class="setting-text">Скачать отчет</span>
+                <span class="setting-status">Excel</span>
+            </div>
+        </div>
+
+        <div class="history-list">
+            <div class="history-header">Последние операции</div>
+            <div id="history-list">
+                <div style="text-align:center; padding:20px; color:gray">Загрузка...</div>
+            </div>
         </div>
     </div>
 
@@ -90,11 +120,10 @@
     <script>
         const tg = window.Telegram.WebApp; tg.expand();
         
-        // !!! ВСТАВЬ СЮДА NGROK !!!
+        // !!! ВСТАВЬ СЮДА ССЫЛКУ NGROK !!!
         const SERVER_URL = "https://unsucceeded-idella-violative.ngrok-free.dev";
         const headers = { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' };
 
-        // Запуск
         loadBalance();
 
         function loadBalance() {
@@ -109,7 +138,7 @@
                 const res = await fetch(SERVER_URL + '/api/history', {headers});
                 const data = await res.json();
                 list.innerHTML = '';
-                if(!data.length) list.innerHTML = '<div style="text-align:center;padding:20px">Пусто</div>';
+                if(!data.length) list.innerHTML = '<div style="text-align:center;padding:20px;opacity:0.5">История пуста</div>';
                 
                 data.forEach(item => {
                     const isInc = item.debit > 0;
@@ -122,7 +151,8 @@
                         <div class="history-item">
                             <div class="h-left">
                                 <span class="h-val" style="color:${color}">${sign} ${val} ₼</span>
-                                <span class="h-desc">${desc} | ${item.date}</span>
+                                <span class="h-desc">${desc}</span>
+                                <span style="font-size:10px; opacity:0.5">${item.date}</span>
                             </div>
                             <button class="del-btn" onclick="delItem(${item.id})">🗑</button>
                         </div>
@@ -138,10 +168,10 @@
                 const ans = await res.json();
                 if(ans.status === 'deleted') {
                     document.getElementById('balance').innerText = ans.new_balance + ' ₼';
-                    loadHistory(); // Обновляем список
+                    loadHistory();
                     showToast("🗑 Удалено");
                 }
-            } catch(e) { alert("Ошибка при удалении"); }
+            } catch(e) { showToast("Ошибка"); }
         }
 
         async function send(type) {
@@ -155,19 +185,17 @@
                 if (!val) return alert('Введите сумму');
                 data = { credit: val, category: document.getElementById('exp_cat').value, comment: document.getElementById('exp_com').value };
             }
-
             try {
                 showToast('⏳ Сохранение...');
                 const res = await fetch(SERVER_URL + '/api/add', { method: 'POST', headers, body: JSON.stringify(data) });
                 const ans = await res.json();
-                
                 if (ans.status === 'ok') {
                     document.getElementById('balance').innerText = ans.new_balance + ' ₼';
                     document.querySelectorAll('input').forEach(i => i.value = '');
                     showToast('✅ Готово!'); 
                     tg.HapticFeedback.notificationOccurred('success');
                 }
-            } catch (e) { alert('Нет связи'); }
+            } catch (e) { showToast('Нет связи'); }
         }
 
         function switchTab(id) {
@@ -178,13 +206,24 @@
             if(id === 'view-history') loadHistory();
         }
 
+        function downloadExcel() { tg.sendData(JSON.stringify({action: 'download_excel'})); }
+
+        function toggleTheme() {
+            const cur = document.body.getAttribute('data-theme');
+            const next = cur === 'dark' ? 'light' : 'dark';
+            document.body.setAttribute('data-theme', next);
+            document.getElementById('theme-status').innerText = next === 'dark' ? 'Темная' : 'Светлая';
+        }
+
         function showToast(txt) {
             const t = document.getElementById('toast');
             t.innerText = txt; t.classList.add('show');
             setTimeout(() => t.classList.remove('show'), 2000);
         }
 
+        // Авто-тема
         document.body.setAttribute('data-theme', tg.colorScheme);
+        document.getElementById('theme-status').innerText = tg.colorScheme === 'dark' ? 'Темная' : 'Светлая';
     </script>
 </body>
 </html>
