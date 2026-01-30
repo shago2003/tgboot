@@ -11,6 +11,7 @@
             --glass-border: rgba(255, 255, 255, 0.6);
             --blue-grad: linear-gradient(135deg, #007aff, #00c6ff);
             --red-grad: linear-gradient(135deg, #ff3b30, #ff9f43);
+            --green-grad: linear-gradient(135deg, #34c759, #30d158);
         }
         [data-theme="dark"] {
             --bg: #000000; --text: #f5f5f7; --gray: #a1a1a6;
@@ -19,31 +20,29 @@
         }
         body { background: var(--bg); color: var(--text); font-family: -apple-system, sans-serif; margin: 0; padding: 16px; padding-bottom: 100px; -webkit-tap-highlight-color: transparent; transition: background 0.3s; }
         
-        /* ЗАСТАВКА (Сохранил мешок денег и анимацию) */
+        /* ЗАСТАВКА */
         #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 9999; display: flex; align-items: center; justify-content: center; flex-direction: column; transition: opacity 0.5s; }
-        .loader-icon { font-size: 80px; animation: pulse 2s infinite ease-in-out; }
+        .loader-icon { font-size: 80px; animation: pulse 2s infinite; }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
-        .loader-title { font-size: 26px; font-weight: 800; color: #007aff; opacity: 0; animation: fadeInUp 0.8s forwards 0.2s; margin-top: 10px; }
-        .spinner { width: 30px; height: 30px; border: 4px solid rgba(0,122,255,0.1); border-left-color: #007aff; border-radius: 50%; margin-top: 20px; animation: spin 1s linear infinite; opacity: 0; animation: fadeIn 1s forwards 0.5s; }
+        .spinner { width: 30px; height: 30px; border: 4px solid rgba(0,122,255,0.1); border-left-color: #007aff; border-radius: 50%; margin-top: 20px; animation: spin 1s linear infinite; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes fadeIn { to { opacity: 1; } }
 
-        /* СТИЛИ */
+        /* ДИЗАЙН */
         .glass { background: var(--card-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 20px; }
         .card { padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
         .balance-card { background: var(--blue-grad); color: white; padding: 25px; border-radius: 24px; text-align: center; margin-bottom: 25px; box-shadow: 0 8px 20px rgba(0, 122, 255, 0.3); }
-        .balance-amount { font-size: 42px; font-weight: 800; margin-top: 5px; text-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .balance-amount { font-size: 42px; font-weight: 800; margin-top: 5px; }
         
-        input { width: 100%; padding: 16px; border-radius: 14px; border: none; background: rgba(128,128,128,0.1); color: var(--text); font-size: 17px; outline: none; margin-top: 8px; box-sizing: border-box; }
+        input, select { width: 100%; padding: 16px; border-radius: 14px; border: none; background: rgba(128,128,128,0.1); color: var(--text); font-size: 17px; outline: none; margin-top: 8px; box-sizing: border-box; }
         label { font-size: 13px; color: var(--gray); font-weight: 600; margin-left: 8px; }
         
         .btn { width: 100%; padding: 18px; border-radius: 18px; border: none; font-size: 18px; font-weight: 700; color: white; cursor: pointer; margin-top: 20px; transition: transform 0.1s; }
         .btn:active { transform: scale(0.97); }
         .btn-inc { background: var(--blue-grad); box-shadow: 0 5px 15px rgba(0,122,255,0.3); }
         .btn-exp { background: var(--red-grad); box-shadow: 0 5px 15px rgba(255,59,48,0.3); }
+        .btn-transfer { background: var(--green-grad); color: white; margin-top: 10px; }
 
-        /* СПИСОК ФАЙЛОВ */
+        /* СПИСОК КАСС */
         .file-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 10px; border-bottom: 1px solid var(--glass-border); cursor: pointer; }
         .file-item:last-child { border-bottom: none; }
         .file-name { font-size: 17px; font-weight: 600; }
@@ -76,15 +75,11 @@
 </head>
 <body>
 
-    <div id="loader">
-        <div class="loader-icon">💰</div>
-        <div class="loader-title">Добро пожаловать</div>
-        <div class="spinner"></div>
-    </div>
+    <div id="loader"><div class="loader-icon">🏪</div><div style="margin-top:10px;font-weight:700">Загрузка касс...</div><div class="spinner"></div></div>
     <div id="toast">Готово</div>
 
     <div class="balance-card glass">
-        <div style="font-size: 14px; opacity: 0.9;">Активный файл: <span id="active-file-name" style="font-weight:800">...</span></div>
+        <div style="font-size: 14px; opacity: 0.9;">Касса: <span id="active-file-name" style="font-weight:800">...</span></div>
         <div class="balance-amount" id="balance">...</div>
     </div>
 
@@ -96,7 +91,7 @@
             <div style="height:15px"></div>
             <label>Куда</label><input type="text" id="inc_to" placeholder="Напр: Карта">
         </div>
-        <button class="btn btn-inc" onclick="send('income')">Добавить Приход</button>
+        <button class="btn btn-inc" onclick="send('income')">Внести в кассу</button>
     </div>
 
     <div id="view-expense" class="view-section">
@@ -107,7 +102,7 @@
             <div style="height:15px"></div>
             <label>Комментарий</label><input type="text" id="exp_com" placeholder="Детали">
         </div>
-        <button class="btn btn-exp" onclick="send('expense')">Списать Расход</button>
+        <button class="btn btn-exp" onclick="send('expense')">Списать из кассы</button>
     </div>
 
     <div id="view-history" class="view-section">
@@ -115,13 +110,25 @@
     </div>
 
     <div id="view-settings" class="view-section">
-        <div style="margin: 0 0 10px 10px; font-weight: 800; font-size: 20px;">🗂 Мои файлы</div>
+        <div style="margin: 0 0 10px 10px; font-weight: 800; font-size: 20px;">🏪 Мои Кассы</div>
+        
         <div class="card glass">
             <div id="files-list">Загрузка...</div>
             <div style="margin-top: 15px; border-top: 1px solid var(--glass-border); padding-top: 15px;">
-                <input type="text" id="new-file-name" placeholder="Название нового файла...">
-                <button class="btn" style="background:var(--text); color:var(--bg); margin-top:10px; padding:12px" onclick="createFile()">➕ Создать файл</button>
+                <input type="text" id="new-file-name" placeholder="Название новой кассы...">
+                <button class="btn" style="background:var(--text); color:var(--bg); margin-top:10px; padding:12px" onclick="createFile()">➕ Добавить кассу</button>
             </div>
+            <button class="btn btn-transfer" onclick="toggleTransferMode()">💸 Переместить деньги</button>
+        </div>
+
+        <div id="transfer-block" class="card glass" style="display:none; border: 2px solid #34c759;">
+            <div style="font-weight:700; margin-bottom:10px; color:#34c759">Перевод между кассами</div>
+            <label>Куда перевести:</label>
+            <select id="transfer-target" style="padding:16px; width:100%; border-radius:14px; border:none; background:rgba(128,128,128,0.1); margin-top:5px"></select>
+            <div style="height:10px"></div>
+            <label>Сумма:</label>
+            <input type="number" id="transfer-amount" placeholder="0.00">
+            <button class="btn btn-inc" onclick="doTransfer()" style="background:#34c759; margin-top:15px">Подтвердить перевод</button>
         </div>
 
         <div style="margin: 20px 0 10px 10px; font-weight: 800; font-size: 20px;">Опции</div>
@@ -140,58 +147,100 @@
         <div class="tab-item active" onclick="switchTab('view-income')"><span class="tab-icon">➕</span>Доход</div>
         <div class="tab-item" onclick="switchTab('view-expense')"><span class="tab-icon">➖</span>Расход</div>
         <div class="tab-item" onclick="switchTab('view-history')"><span class="tab-icon">📝</span>История</div>
-        <div class="tab-item" onclick="switchTab('view-settings')"><span class="tab-icon">⚙️</span>Настройки</div>
+        <div class="tab-item" onclick="switchTab('view-settings')"><span class="tab-icon">⚙️</span>Кассы</div>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp; tg.expand();
-        // ВСТАВЬ ССЫЛКУ NGROK
+        // ВСТАВЬ СВОЮ NGROK ССЫЛКУ
         const SERVER_URL = "https://unsucceeded-idella-violative.ngrok-free.dev";
         const headers = { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' };
 
-        // === АНИМАЦИЯ ===
+        // АНИМАЦИЯ
         checkAnim();
         function checkAnim() {
             const isEnabled = localStorage.getItem('anim') !== 'off';
             document.getElementById('anim-status').innerText = isEnabled ? 'Вкл' : 'Выкл';
-            if (isEnabled) { setTimeout(() => { document.getElementById('loader').style.opacity = '0'; setTimeout(()=>document.getElementById('loader').style.display='none',500); }, 2000); } 
+            if (isEnabled) { setTimeout(() => { document.getElementById('loader').style.opacity = '0'; setTimeout(()=>document.getElementById('loader').style.display='none',500); }, 1500); } 
             else { document.getElementById('loader').style.display = 'none'; }
         }
         function toggleAnim() {
-            tg.HapticFeedback.impactOccurred('medium');
             const next = localStorage.getItem('anim') === 'off' ? 'on' : 'off';
             localStorage.setItem('anim', next);
-            checkAnim(); 
-            if(next === 'on') showToast('Анимация включена');
-            else showToast('Анимация выключена');
+            checkAnim();
         }
 
         loadBalance();
 
-        // === ФАЙЛЫ ===
+        // === РАБОТА С КАССАМИ ===
         async function loadFiles() {
             const res = await fetch(SERVER_URL + '/api/files', {headers});
             const data = await res.json();
             const list = document.getElementById('files-list');
+            const select = document.getElementById('transfer-target');
+            
             list.innerHTML = '';
+            select.innerHTML = ''; // Очищаем список для перевода
+            
             document.getElementById('active-file-name').innerText = data.active;
+            
             data.files.forEach(f => {
                 const isActive = f === data.active;
+                // Список касс
                 list.innerHTML += `<div class="file-item ${isActive ? 'active' : ''}" onclick="setFile('${f}')"><span class="file-name">${f}</span><span class="file-check">✅</span></div>`;
+                
+                // Список для перевода (исключаем текущую)
+                if (!isActive) {
+                    const option = document.createElement("option");
+                    option.text = f;
+                    option.value = f;
+                    select.add(option);
+                }
             });
         }
         async function setFile(name) {
-            if(!confirm(`Перейти в "${name}"?`)) return;
+            if(!confirm(`Переключиться на кассу "${name}"?`)) return;
             await fetch(SERVER_URL + '/api/files/set', {method:'POST', headers, body:JSON.stringify({name})});
-            loadBalance(); loadFiles(); loadHistory(); showToast(`Открыт: ${name}`);
+            loadBalance(); loadFiles(); loadHistory(); showToast(`Касса: ${name}`);
         }
         async function createFile() {
             const name = document.getElementById('new-file-name').value;
-            if(!name) return showToast('Название?');
+            if(!name) return showToast('Введите название');
             await fetch(SERVER_URL + '/api/files/create', {method:'POST', headers, body:JSON.stringify({name})});
             document.getElementById('new-file-name').value = '';
-            loadBalance(); loadFiles(); loadHistory(); showToast('Создано!');
+            loadBalance(); loadFiles(); loadHistory(); showToast('Касса добавлена!');
         }
+
+        // === ПЕРЕМЕЩЕНИЕ ===
+        function toggleTransferMode() {
+            const block = document.getElementById('transfer-block');
+            block.style.display = block.style.display === 'none' ? 'block' : 'none';
+        }
+        async function doTransfer() {
+            const target = document.getElementById('transfer-target').value;
+            const amount = document.getElementById('transfer-amount').value;
+            
+            if (!target) return showToast("Нет других касс");
+            if (!amount) return showToast("Введите сумму");
+            
+            if(!confirm(`Перевести ${amount} ₼ в кассу "${target}"?`)) return;
+
+            const res = await fetch(SERVER_URL + '/api/transfer', {
+                method: 'POST', headers, 
+                body: JSON.stringify({ to_kassa: target, amount: amount })
+            });
+            const ans = await res.json();
+            
+            if(ans.status === 'ok') {
+                document.getElementById('balance').innerText = ans.new_balance + ' ₼';
+                document.getElementById('transfer-amount').value = '';
+                document.getElementById('transfer-block').style.display = 'none'; // Скрыть
+                showToast("Успешно переведено!");
+            } else {
+                showToast("Ошибка перевода");
+            }
+        }
+        // ==================
 
         function loadBalance() {
             fetch(SERVER_URL + '/api/balance', {headers}).then(r=>r.json()).then(d=>{
@@ -266,7 +315,6 @@
 
         function downloadExcel() { tg.sendData(JSON.stringify({action: 'download_excel'})); }
         function toggleTheme() {
-            tg.HapticFeedback.impactOccurred('light');
             const next = document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
             document.body.setAttribute('data-theme', next);
             document.getElementById('theme-status').innerText = next === 'dark' ? 'Темная' : 'Светлая';
