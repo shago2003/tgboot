@@ -5,100 +5,49 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root {
-            --bg-color: #f2f2f7; --card-bg: #ffffff; --text-color: #000;
-            --tint-color: #007aff; --danger-color: #ff3b30; --secondary: #8e8e93;
-        }
-        [data-theme="dark"] {
-            --bg-color: #000; --card-bg: #1c1c1e; --text-color: #fff;
-        }
-
-        body {
-            background-color: var(--bg-color); color: var(--text-color);
-            font-family: -apple-system, sans-serif; margin: 0; padding: 20px 16px 100px;
-            -webkit-tap-highlight-color: transparent;
-        }
-
+        :root { --bg-color: #f2f2f7; --card-bg: #ffffff; --text-color: #000; --tint-color: #007aff; --danger-color: #ff3b30; --secondary: #8e8e93; }
+        [data-theme="dark"] { --bg-color: #000; --card-bg: #1c1c1e; --text-color: #fff; }
+        body { background-color: var(--bg-color); color: var(--text-color); font-family: -apple-system, sans-serif; margin: 0; padding: 20px 16px 100px; -webkit-tap-highlight-color: transparent; }
         .header { font-size: 28px; font-weight: 700; margin-bottom: 20px; }
         .card { background: var(--card-bg); border-radius: 12px; padding: 16px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
         input { width: 100%; padding: 12px; background: var(--bg-color); border: none; border-radius: 10px; color: var(--text-color); font-size: 17px; box-sizing: border-box; outline: none; }
         label { display: block; font-size: 13px; color: var(--secondary); margin-bottom: 6px; margin-left: 4px; }
-        
-        .btn { background: var(--tint-color); color: white; border: none; width: 100%; padding: 14px; border-radius: 12px; font-weight: 600; font-size: 17px; margin-top: 10px; cursor: pointer; transition: transform 0.1s; }
-        .btn:active { transform: scale(0.98); opacity: 0.8; }
-
-        /* Уведомление (Toast) */
-        #toast {
-            position: fixed; top: -60px; left: 50%; transform: translateX(-50%);
-            background: rgba(50, 50, 50, 0.9); backdrop-filter: blur(10px);
-            color: white; padding: 12px 24px; border-radius: 30px;
-            font-weight: 500; z-index: 1000; transition: top 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 8px;
-        }
+        .btn { background: var(--tint-color); color: white; border: none; width: 100%; padding: 14px; border-radius: 12px; font-weight: 600; font-size: 17px; margin-top: 10px; cursor: pointer; }
+        .btn:active { opacity: 0.8; }
+        #toast { position: fixed; top: -60px; left: 50%; transform: translateX(-50%); background: rgba(50, 50, 50, 0.9); backdrop-filter: blur(10px); color: white; padding: 12px 24px; border-radius: 30px; z-index: 1000; transition: top 0.4s; }
         #toast.show { top: 20px; }
-
-        /* История */
         .history-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 0.5px solid var(--secondary); }
-        .history-item:last-child { border-bottom: none; }
-        .h-info { display: flex; flex-direction: column; }
-        .h-amount { font-weight: 600; font-size: 16px; }
-        .h-desc { font-size: 12px; color: var(--secondary); margin-top: 2px; }
-        .h-date { font-size: 10px; color: var(--secondary); margin-top: 2px; }
-        .del-btn { background: none; border: none; font-size: 18px; cursor: pointer; padding: 5px; opacity: 0.5; }
-
-        /* Навигация */
+        .del-btn { background: none; border: none; font-size: 18px; cursor: pointer; opacity: 0.5; }
         .tab-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card-bg); border-top: 0.5px solid var(--secondary); display: flex; justify-content: space-around; padding: 10px 0 25px; z-index: 100; }
         .tab-item { color: var(--secondary); text-align: center; font-size: 11px; }
         .tab-item.active { color: var(--tint-color); }
         .tab-icon { font-size: 24px; display: block; margin-bottom: 2px; }
         .tab-content { display: none; }
-        .tab-content.active { display: block; animation: fade 0.2s; }
-        @keyframes fade { from{opacity:0} to{opacity:1} }
+        .tab-content.active { display: block; }
     </style>
 </head>
 <body>
-
-    <div id="toast">✅ Операция выполнена</div>
-
+    <div id="toast">✅ Готово</div>
+    
     <div id="main" class="tab-content active">
         <div class="header">Касса</div>
-        <div class="card">
-            <label>Сумма</label> <input type="number" id="main_amount" placeholder="0.00" inputmode="decimal">
-        </div>
-        <div class="card">
-            <label>Откуда</label> <input type="text" id="from" placeholder="Напр: Банк">
-            <div style="margin-top:12px"></div>
-            <label>Куда</label> <input type="text" id="to" placeholder="Напр: Офис">
-        </div>
+        <div class="card"><label>Сумма</label><input type="number" id="main_amount" placeholder="0.00" inputmode="decimal"></div>
+        <div class="card"><label>Откуда</label><input type="text" id="from" placeholder="Банк"><div style="margin-top:10px"></div><label>Куда</label><input type="text" id="to" placeholder="Офис"></div>
         <button class="btn" onclick="sendData('income')">Приход</button>
     </div>
 
     <div id="expense" class="tab-content">
         <div class="header">Расходы</div>
-        <div class="card">
-            <label>Сумма</label> <input type="number" id="exp_amount" placeholder="0.00" inputmode="decimal">
-        </div>
-        <div class="card">
-            <label>Категория</label> <input type="text" id="category" placeholder="Напр: Еда">
-            <div style="margin-top:12px"></div>
-            <label>Комментарий</label> <input type="text" id="comment" placeholder="Напр: Обед">
-        </div>
+        <div class="card"><label>Сумма</label><input type="number" id="exp_amount" placeholder="0.00" inputmode="decimal"></div>
+        <div class="card"><label>Категория</label><input type="text" id="category" placeholder="Еда"><div style="margin-top:10px"></div><label>Комментарий</label><input type="text" id="comment" placeholder="Обед"></div>
         <button class="btn" style="background:var(--danger-color)" onclick="sendData('expense')">Расход</button>
     </div>
 
     <div id="history" class="tab-content">
-        <div class="header">История <span style="font-size:14px; color:var(--tint-color)" onclick="loadHistory()">🔄</span></div>
-        <div class="card" id="history-list" style="min-height: 100px;">
-            <div style="text-align:center; color:var(--secondary); padding:20px">Загрузка...</div>
-        </div>
-        
-        <div class="header" style="font-size:20px; margin-top:30px">Опции</div>
-        <div class="card" onclick="downloadExcel()">
-            <div style="color:var(--tint-color); font-weight:600">⬇️ Скачать Excel отчет</div>
-        </div>
-        <div class="card" onclick="toggleTheme()">
-            <div id="theme-text">🌙 Тема</div>
-        </div>
+        <div class="header">История <span onclick="loadHistory()" style="color:var(--tint-color); font-size:20px; cursor:pointer">🔄</span></div>
+        <div class="card" id="history-list"><div style="text-align:center; padding:20px">Загрузка...</div></div>
+        <div class="header" style="font-size:20px; margin-top:20px">Опции</div>
+        <div class="card" onclick="tg.sendData(JSON.stringify({action:'download_excel'}))"><div style="color:var(--tint-color); font-weight:600">⬇️ Скачать Excel</div></div>
     </div>
 
     <div class="tab-bar">
@@ -108,110 +57,53 @@
     </div>
 
     <script>
-        const tg = window.Telegram.WebApp;
-        tg.expand();
-
-        // Твоя ссылка ngrok, которая была в index.py
+        const tg = window.Telegram.WebApp; tg.expand();
+        // Твоя ссылка:
         const SERVER_URL = "https://unsucceeded-idella-violative.ngrok-free.dev"; 
 
-        // Отправка данных на сервер (НЕ ЗАКРЫВАЕТ АПП)
         async function sendData(type) {
             let data = {};
-            if (type === 'income') {
-                const amt = document.getElementById('main_amount').value;
-                if(!amt) return showToast("❌ Введите сумму");
-                data = { debit: amt, transfer: document.getElementById('from').value + '-' + document.getElementById('to').value };
-                document.getElementById('main_amount').value = ''; // Очистка
+            if(type==='income'){
+                const v = document.getElementById('main_amount').value;
+                if(!v) return showToast("Введите сумму");
+                data = {debit:v, transfer: document.getElementById('from').value+'-'+document.getElementById('to').value};
+                document.getElementById('main_amount').value='';
             } else {
-                const amt = document.getElementById('exp_amount').value;
-                if(!amt) return showToast("❌ Введите сумму");
-                data = { credit: amt, category: document.getElementById('category').value, comment: document.getElementById('comment').value };
-                document.getElementById('exp_amount').value = ''; // Очистка
+                const v = document.getElementById('exp_amount').value;
+                if(!v) return showToast("Введите сумму");
+                data = {credit:v, category:document.getElementById('category').value, comment:document.getElementById('comment').value};
+                document.getElementById('exp_amount').value='';
             }
-
             try {
-                tg.HapticFeedback.notificationOccurred('success');
                 showToast("⏳ Сохранение...");
-                await fetch(`${SERVER_URL}/api/add`, {
-                    method: 'POST', headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify(data)
-                });
-                showToast("✅ Успешно сохранено!");
-            } catch (e) {
-                showToast("❌ Ошибка соединения");
-            }
+                await fetch(SERVER_URL+'/api/add', {method:'POST', body:JSON.stringify(data)});
+                showToast("✅ Сохранено!"); tg.HapticFeedback.notificationOccurred('success');
+            } catch(e){ showToast("❌ Ошибка связи"); }
         }
 
-        // Загрузка истории
         async function loadHistory() {
             const list = document.getElementById('history-list');
             try {
-                const res = await fetch(`${SERVER_URL}/api/history`);
+                const res = await fetch(SERVER_URL+'/api/history');
                 const data = await res.json();
-                
                 list.innerHTML = '';
-                if (data.length === 0) list.innerHTML = '<div style="padding:10px; text-align:center">Пусто</div>';
-
-                data.forEach(item => {
-                    const isIncome = item.debit > 0;
-                    const amount = isIncome ? `+${item.debit} ₼` : `-${item.credit} ₼`;
-                    const desc = isIncome ? item.transfer : `${item.category} (${item.comment})`;
-                    const color = isIncome ? '#34c759' : '#ff3b30';
-
-                    list.innerHTML += `
-                        <div class="history-item">
-                            <div class="h-info">
-                                <span class="h-amount" style="color:${color}">${amount}</span>
-                                <span class="h-desc">${desc}</span>
-                                <span class="h-date">${item.date}</span>
-                            </div>
-                            <button class="del-btn" onclick="deleteItem(${item.id})">🗑</button>
-                        </div>
-                    `;
+                if(!data.length) list.innerHTML='<div style="padding:10px;text-align:center">Пусто</div>';
+                data.forEach(i => {
+                    const color = i.debit > 0 ? '#34c759' : '#ff3b30';
+                    const txt = i.debit > 0 ? `+${i.debit} | ${i.transfer}` : `-${i.credit} | ${i.category}`;
+                    list.innerHTML += `<div class="history-item"><div><b style="color:${color}">${txt}</b><div style="font-size:10px;color:#888">${i.date}</div></div><button class="del-btn" onclick="del(${i.id})">🗑</button></div>`;
                 });
-            } catch (e) {
-                list.innerHTML = '<div style="color:red; text-align:center">Ошибка загрузки.<br>Проверь Ngrok.</div>';
-            }
+            } catch(e){ list.innerHTML='<div style="color:red;text-align:center">Ошибка Ngrok</div>'; }
         }
 
-        // Удаление
-        async function deleteItem(id) {
-            if(!confirm('Удалить запись?')) return;
-            try {
-                await fetch(`${SERVER_URL}/api/delete`, {
-                    method: 'POST', headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({id: id})
-                });
-                loadHistory(); // Обновить список
-                showToast("🗑 Удалено");
-            } catch(e) { showToast("Ошибка"); }
+        async function del(id) {
+            if(!confirm('Удалить?')) return;
+            await fetch(SERVER_URL+'/api/delete', {method:'POST', body:JSON.stringify({id:id})});
+            loadHistory();
         }
 
-        // Для скачивания Excel используем старый метод (он закроет апп, и это нормально)
-        function downloadExcel() {
-            tg.sendData(JSON.stringify({action: 'download_excel'}));
-        }
-
-        // Утилиты
-        function showToast(msg) {
-            const t = document.getElementById('toast');
-            t.innerText = msg; t.classList.add('show');
-            setTimeout(() => t.classList.remove('show'), 2500);
-        }
-
-        function switchTab(id) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.tab-item').forEach(el => el.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            event.currentTarget.classList.add('active');
-            if(id === 'history') loadHistory();
-        }
-
-        function toggleTheme() {
-            const curr = document.body.getAttribute('data-theme');
-            const next = curr === 'dark' ? 'light' : 'dark';
-            document.body.setAttribute('data-theme', next);
-        }
+        function showToast(m) { const t=document.getElementById('toast'); t.innerText=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2000); }
+        function switchTab(id) { document.querySelectorAll('.tab-content').forEach(e=>e.classList.remove('active')); document.querySelectorAll('.tab-item').forEach(e=>e.classList.remove('active')); document.getElementById(id).classList.add('active'); event.currentTarget.classList.add('active'); if(id==='history') loadHistory(); }
         document.body.setAttribute('data-theme', tg.colorScheme);
     </script>
 </body>
