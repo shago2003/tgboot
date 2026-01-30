@@ -1,49 +1,178 @@
-// Переключение вкладок
-function openTab(tabName) {
-    const tabs = document.querySelectorAll('.tab-content');
-    tabs.forEach(t => t.style.display = 'none');
-    document.getElementById(tabName).style.display = 'block';
-    
-    // Подсветка активной кнопки в таббаре
-    document.querySelectorAll('.tab-item').forEach(i => i.classList.remove('active'));
-    event.currentTarget.classList.add('active');
-}
-
-// Логика добавления Прихода (Главная)
-function sendIncome() {
-    const amount = parseFloat(document.getElementById('main_amount').value);
-    const from = document.getElementById('from').value;
-    const to = document.getElementById('to').value;
-    
-    const data = {
-        action: "add_transaction",
-        debit: amount,
-        transfer: `${from}-${to}` // Формат банк-офис
-    };
-    tg.sendData(JSON.stringify(data));
-}
-
-// Логика добавления Расхода
-function sendExpense() {
-    const amount = parseFloat(document.getElementById('exp_amount').value);
-    const cat = document.getElementById('category').value;
-    const comm = document.getElementById('comment').value;
-    
-    const data = {
-        action: "add_transaction",
-        credit: amount,
-        category: cat,
-        comment: comm
-    };
-    tg.sendData(JSON.stringify(data));
-}
-
-// Удаление
-function deleteItem(id) {
-    tg.showConfirm("Вы уверены, что хотите удалить запись?", (confirmed) => {
-        if (confirmed) {
-            tg.sendData(JSON.stringify({ action: "delete_record", id: id }));
-            tg.HapticFeedback.notificationOccurred('warning');
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --bg-color: #f2f2f7;
+            --card-bg: #ffffff;
+            --text-color: #000000;
+            --tint-color: #007aff;
+            --secondary-text: #8e8e93;
         }
-    });
-}
+        [data-theme="dark"] {
+            --bg-color: #000000;
+            --card-bg: #1c1c1e;
+            --text-color: #ffffff;
+            --secondary-text: #8e8e93;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            margin: 0; padding: 20px 16px 100px 16px;
+            transition: all 0.3s ease;
+        }
+
+        .header { font-size: 28px; font-weight: 700; margin-bottom: 20px; }
+        
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .input-group { margin-bottom: 12px; }
+        label { display: block; font-size: 13px; color: var(--secondary-text); margin-bottom: 4px; margin-left: 4px; }
+        
+        input {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            background: var(--bg-color);
+            border-radius: 10px;
+            color: var(--text-color);
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+
+        .btn {
+            background: var(--tint-color);
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 17px;
+            margin-top: 10px;
+        }
+
+        /* Навигация (Tab Bar) */
+        .tab-bar {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            background: rgba(var(--card-bg), 0.8);
+            backdrop-filter: blur(20px);
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0 25px 0;
+            border-top: 0.5px solid var(--secondary-text);
+        }
+
+        .tab-item { color: var(--secondary-text); text-align: center; font-size: 11px; cursor: pointer; }
+        .tab-item.active { color: var(--tint-color); }
+
+        .tab-content { display: none; animation: fadeIn 0.3s ease; }
+        .tab-content.active { display: block; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <div id="main" class="tab-content active">
+        <div class="header">Касса</div>
+        <div class="card">
+            <label>Сумма (манат)</label>
+            <input type="number" id="main_amount" placeholder="0.00">
+        </div>
+        <div class="card">
+            <label>Откуда</label>
+            <input type="text" id="from" placeholder="Напр: Банк">
+            <div style="margin-top: 10px;"></div>
+            <label>Куда</label>
+            <input type="text" id="to" placeholder="Напр: Офис">
+        </div>
+        <button class="btn" onclick="sendIncome()">Приход</button>
+    </div>
+
+    <div id="expense" class="tab-content">
+        <div class="header">Расходы</div>
+        <div class="card">
+            <label>Сумма</label>
+            <input type="number" id="exp_amount" placeholder="0.00">
+        </div>
+        <div class="card">
+            <label>Категория</label>
+            <input type="text" id="category" placeholder="Напр: Еда">
+            <div style="margin-top: 10px;"></div>
+            <label>Комментарий</label>
+            <input type="text" id="comment" placeholder="Напр: Яйца">
+        </div>
+        <button class="btn" style="background: #ff3b30;" onclick="sendExpense()">Записать расход</button>
+    </div>
+
+    <div id="settings" class="tab-content">
+        <div class="header">Настройки</div>
+        <div class="card" onclick="tg.sendData(JSON.stringify({action: 'download_excel'}))">
+            <div style="color: var(--tint-color); font-weight: 600;">⬇️ Скачать Excel отчет</div>
+        </div>
+        <div class="card" onclick="toggleTheme()">
+            <div id="theme-text">🌙 Темная тема: Выкл</div>
+        </div>
+    </div>
+
+    <div class="tab-bar">
+        <div class="tab-item active" onclick="showTab('main')">🏦<br>Касса</div>
+        <div class="tab-item" onclick="showTab('expense')">💸<br>Расходы</div>
+        <div class="tab-item" onclick="showTab('settings')">⚙️<br>Опции</div>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+
+        function showTab(id) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-item').forEach(i => i.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        function sendIncome() {
+            const data = {
+                action: 'add_transaction',
+                debit: document.getElementById('main_amount').value,
+                transfer: document.getElementById('from').value + '-' + document.getElementById('to').value
+            };
+            tg.sendData(JSON.stringify(data));
+        }
+
+        function sendExpense() {
+            const data = {
+                action: 'add_transaction',
+                credit: document.getElementById('exp_amount').value,
+                category: document.getElementById('category').value,
+                comment: document.getElementById('comment').value
+            };
+            tg.sendData(JSON.stringify(data));
+        }
+
+        function toggleTheme() {
+            const curr = document.body.getAttribute('data-theme');
+            const next = curr === 'dark' ? 'light' : 'dark';
+            document.body.setAttribute('data-theme', next);
+            document.getElementById('theme-text').innerText = next === 'dark' ? '☀️ Темная тема: Вкл' : '🌙 Темная тема: Выкл';
+        }
+        
+        // Синхронизация с темой ТГ
+        document.body.setAttribute('data-theme', tg.colorScheme);
+    </script>
+</body>
+</html>
