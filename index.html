@@ -8,7 +8,7 @@
         :root { --bg: #f2f2f7; --card: #fff; --text: #000; --blue: #007aff; --red: #ff3b30; --gray: #8e8e93; }
         [data-theme="dark"] { --bg: #000; --card: #1c1c1e; --text: #fff; }
         
-        body { background: var(--bg); color: var(--text); font-family: -apple-system, sans-serif; margin: 0; padding: 16px; padding-bottom: 80px; }
+        body { background: var(--bg); color: var(--text); font-family: -apple-system, sans-serif; margin: 0; padding: 16px; padding-bottom: 80px; -webkit-tap-highlight-color: transparent; }
         
         /* Баланс */
         .balance-card {
@@ -18,18 +18,17 @@
         }
         .balance-amount { font-size: 36px; font-weight: 800; margin-top: 5px; }
 
-        /* Формы и кнопки */
+        /* Элементы */
         .card { background: var(--card); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
-        input { width: 100%; padding: 12px; border-radius: 8px; border: none; background: var(--bg); color: var(--text); font-size: 16px; box-sizing: border-box; outline: none; margin-top: 5px; }
+        input { width: 100%; padding: 12px; border-radius: 8px; border: none; background: var(--bg); color: var(--text); font-size: 16px; outline: none; margin-top: 5px; box-sizing: border-box; }
         label { font-size: 12px; color: var(--gray); margin-left: 4px; }
         
         .btn { width: 100%; padding: 14px; border-radius: 12px; border: none; font-size: 16px; font-weight: bold; color: white; cursor: pointer; margin-top: 10px; }
         .btn:active { opacity: 0.8; }
         .btn-inc { background: var(--blue); }
         .btn-exp { background: var(--red); }
-        .btn-opt { background: var(--gray); color: white; margin-bottom: 10px; }
 
-        /* Нижнее меню (Tabs) */
+        /* Меню */
         .tab-bar { 
             position: fixed; bottom: 0; left: 0; right: 0; 
             background: var(--card); border-top: 0.5px solid var(--gray); 
@@ -40,8 +39,8 @@
         .tab-item.active { color: var(--blue); }
         .tab-icon { font-size: 24px; display: block; margin-bottom: 2px; }
 
-        .view-section { display: none; animation: fade 0.2s; }
-        .view-section.active { display: block; }
+        .view-section { display: none; }
+        .view-section.active { display: block; animation: fade 0.2s; }
         @keyframes fade { from{opacity:0} to{opacity:1} }
 
         #toast { position: fixed; top: -50px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 10px 20px; border-radius: 20px; transition: 0.3s; z-index: 200; }
@@ -54,7 +53,7 @@
 
     <div class="balance-card">
         <div style="font-size: 13px; opacity: 0.8">Текущий баланс</div>
-        <div class="balance-amount" id="balance">...</div>
+        <div class="balance-amount" id="balance">Загрузка...</div>
     </div>
 
     <div id="view-income" class="view-section active">
@@ -81,47 +80,44 @@
 
     <div id="view-settings" class="view-section">
         <div class="card" onclick="downloadExcel()">
-            <div style="color:var(--blue); font-weight:600; font-size:18px">📥 Скачать отчет Excel</div>
-            <div style="font-size:12px; color:var(--gray); margin-top:5px">Бот пришлет файл в чат</div>
+            <div style="color:var(--blue); font-weight:600; font-size:16px">📥 Скачать отчет Excel</div>
         </div>
-
         <div class="card" onclick="toggleTheme()">
-            <div style="font-size:18px">🌓 Сменить тему</div>
-            <div style="font-size:12px; color:var(--gray); margin-top:5px" id="theme-status">Текущая: Авто</div>
+            <div style="font-size:16px">🌓 Сменить тему</div>
+            <div style="font-size:12px; color:var(--gray); margin-top:5px" id="theme-status">Авто</div>
         </div>
     </div>
 
     <div class="tab-bar">
-        <div class="tab-item active" onclick="switchTab('view-income')">
-            <span class="tab-icon">➕</span>Приход
-        </div>
-        <div class="tab-item" onclick="switchTab('view-expense')">
-            <span class="tab-icon">➖</span>Расход
-        </div>
-        <div class="tab-item" onclick="switchTab('view-settings')">
-            <span class="tab-icon">⚙️</span>Опции
-        </div>
+        <div class="tab-item active" onclick="switchTab('view-income')"><span class="tab-icon">➕</span>Приход</div>
+        <div class="tab-item" onclick="switchTab('view-expense')"><span class="tab-icon">➖</span>Расход</div>
+        <div class="tab-item" onclick="switchTab('view-settings')"><span class="tab-icon">⚙️</span>Опции</div>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp; tg.expand();
         
-        // !!! СЮДА ВСТАВЬ НОВУЮ ССЫЛКУ ОТ NGROK !!!
+        // !!! ВСТАВЬ СВОЮ ССЫЛКУ NGROK НИЖЕ (https://....) !!!
         const SERVER_URL = "https://unsucceeded-idella-violative.ngrok-free.dev";
 
-        // Получаем баланс при старте
-        fetch(SERVER_URL + '/api/balance')
+        // Заголовки для обхода защиты Ngrok
+        const headers = { 
+            'Content-Type': 'application/json',
+            'ngrok-skip-browser-warning': 'true' 
+        };
+
+        // 1. Загрузка баланса при старте
+        fetch(SERVER_URL + '/api/balance', { headers: headers })
             .then(r => r.json())
-            .then(d => { document.getElementById('balance').innerText = d.balance + ' ₼'; })
-            .catch(e => { document.getElementById('balance').innerText = 'Нет связи'; });
+            .then(d => { 
+                document.getElementById('balance').innerText = d.balance + ' ₼'; 
+            })
+            .catch(e => { 
+                document.getElementById('balance').innerText = 'Нет связи'; 
+                console.error(e);
+            });
 
-        function switchTab(id) {
-            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.tab-item').forEach(el => el.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            event.currentTarget.classList.add('active');
-        }
-
+        // 2. Отправка данных
         async function send(type) {
             let data = {};
             if (type === 'income') {
@@ -137,7 +133,8 @@
             try {
                 showToast('⏳ Сохранение...');
                 const res = await fetch(SERVER_URL + '/api/add', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    method: 'POST', 
+                    headers: headers, // <-- Используем те же заголовки
                     body: JSON.stringify(data)
                 });
                 const ans = await res.json();
@@ -145,24 +142,30 @@
                 if (ans.status === 'ok') {
                     document.getElementById('balance').innerText = ans.new_balance + ' ₼';
                     document.querySelectorAll('input').forEach(i => i.value = '');
-                    showToast('✅ Готово!'); tg.HapticFeedback.notificationOccurred('success');
+                    showToast('✅ Готово!'); 
+                    tg.HapticFeedback.notificationOccurred('success');
                 } else {
-                    alert('Ошибка сервера: ' + ans.message);
+                    alert('Ошибка: ' + ans.message);
                 }
             } catch (e) {
-                alert('Ошибка соединения! Проверь, запущен ли Python и Ngrok.');
+                alert('Ошибка соединения. Проверь Ngrok.');
             }
         }
 
-        function downloadExcel() {
-            tg.sendData(JSON.stringify({action: 'download_excel'}));
+        function switchTab(id) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-item').forEach(el => el.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            event.currentTarget.classList.add('active');
         }
 
+        function downloadExcel() { tg.sendData(JSON.stringify({action: 'download_excel'})); }
+        
         function toggleTheme() {
             const cur = document.body.getAttribute('data-theme');
             const next = cur === 'dark' ? 'light' : 'dark';
             document.body.setAttribute('data-theme', next);
-            document.getElementById('theme-status').innerText = 'Текущая: ' + (next==='dark'?'Темная':'Светлая');
+            document.getElementById('theme-status').innerText = next === 'dark' ? 'Темная' : 'Светлая';
         }
 
         function showToast(txt) {
@@ -171,7 +174,6 @@
             setTimeout(() => t.classList.remove('show'), 2000);
         }
 
-        // Применяем тему телеграма при старте
         document.body.setAttribute('data-theme', tg.colorScheme);
     </script>
 </body>
