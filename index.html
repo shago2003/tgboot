@@ -5,36 +5,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --bg: #f2f2f7; --card: #fff; --text: #000; --blue: #007aff; --red: #ff3b30; --gray: #8e8e93; }
-        [data-theme="dark"] { --bg: #000; --card: #1c1c1e; --text: #fff; }
+        :root { --bg: #f2f2f7; --card: #ffffff; --text: #000000; --blue: #007aff; --red: #ff3b30; --gray: #8e8e93; --header-bg: #ffffff; }
+        [data-theme="dark"] { --bg: #000000; --card: #1c1c1e; --text: #ffffff; --header-bg: #1c1c1e; }
         
-        body { background: var(--bg); color: var(--text); font-family: -apple-system, sans-serif; margin: 0; padding: 16px; padding-bottom: 90px; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--text); font-family: -apple-system, sans-serif; margin: 0; padding: 16px; padding-bottom: 90px; -webkit-tap-highlight-color: transparent; transition: background 0.3s, color 0.3s; }
         
+        /* ШАПКА С КНОПКОЙ ТЕМЫ */
+        .app-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .app-title { font-size: 22px; font-weight: 800; }
+        .theme-btn { 
+            width: 40px; height: 40px; border-radius: 50%; background: var(--card); 
+            display: flex; align-items: center; justify-content: center; 
+            font-size: 20px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+        .theme-btn:active { transform: scale(0.9); }
+
         /* Баланс */
         .balance-card { background: linear-gradient(135deg, #007aff, #0056b3); color: white; padding: 20px; border-radius: 16px; text-align: center; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,122,255,0.3); }
         .balance-amount { font-size: 36px; font-weight: 800; margin-top: 5px; }
 
-        /* Карточки и инпуты */
-        .card { background: var(--card); border-radius: 12px; padding: 16px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; }
-        .card-col { display: block; width: 100%; } /* Для форм */
+        /* Карточки */
+        .card { background: var(--card); border-radius: 12px; padding: 16px; margin-bottom: 12px; transition: background 0.3s; }
+        .card-col { display: block; }
         
-        input { width: 100%; padding: 12px; border-radius: 8px; border: none; background: var(--bg); color: var(--text); font-size: 16px; outline: none; margin-top: 5px; box-sizing: border-box; }
+        input { width: 100%; padding: 12px; border-radius: 8px; border: none; background: var(--bg); color: var(--text); font-size: 16px; outline: none; margin-top: 5px; box-sizing: border-box; transition: background 0.3s; }
         label { font-size: 12px; color: var(--gray); margin-left: 4px; }
         
         .btn { width: 100%; padding: 14px; border-radius: 12px; border: none; font-size: 16px; font-weight: bold; color: white; cursor: pointer; margin-top: 10px; }
         .btn:active { opacity: 0.8; }
         .btn-inc { background: var(--blue); }
         .btn-exp { background: var(--red); }
+        .btn-excel { background: var(--card); color: var(--blue); border: 1px solid var(--blue); margin-bottom: 20px; }
 
-        /* Кнопки настроек */
-        .setting-row { display: flex; align-items: center; width: 100%; }
-        .setting-icon { font-size: 22px; margin-right: 15px; }
-        .setting-text { font-size: 16px; font-weight: 500; flex-grow: 1; }
-        .setting-status { font-size: 14px; color: var(--gray); }
-
-        /* Элементы истории */
-        .history-list { margin-top: 20px; }
-        .history-header { font-size: 18px; font-weight: 700; margin-bottom: 10px; margin-left: 5px; }
+        /* История */
         .history-item { background: var(--card); padding: 12px 16px; border-radius: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
         .h-left { display: flex; flex-direction: column; }
         .h-val { font-weight: 700; font-size: 15px; }
@@ -42,7 +46,7 @@
         .del-btn { background: rgba(255, 59, 48, 0.1); color: var(--red); border: none; font-size: 18px; cursor: pointer; padding: 8px; border-radius: 8px; }
 
         /* Таббар */
-        .tab-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card); border-top: 0.5px solid var(--gray); display: flex; justify-content: space-around; padding: 10px 0 25px; z-index: 100; }
+        .tab-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card); border-top: 0.5px solid var(--gray); display: flex; justify-content: space-around; padding: 10px 0 25px; z-index: 100; transition: background 0.3s; }
         .tab-item { color: var(--gray); text-align: center; font-size: 10px; cursor: pointer; }
         .tab-item.active { color: var(--blue); }
         .tab-icon { font-size: 24px; display: block; margin-bottom: 2px; }
@@ -57,6 +61,11 @@
 <body>
 
     <div id="toast">✅ Готово</div>
+
+    <div class="app-header">
+        <div class="app-title">Финансы</div>
+        <div class="theme-btn" onclick="toggleTheme()" id="theme-btn">🌙</div>
+    </div>
 
     <div class="balance-card">
         <div style="font-size: 13px; opacity: 0.8">Текущий баланс</div>
@@ -86,28 +95,11 @@
     </div>
 
     <div id="view-history" class="view-section">
+        <button class="btn btn-excel" onclick="downloadExcel()">📥 Скачать отчет Excel</button>
         
-        <div class="card" onclick="toggleTheme()">
-            <div class="setting-row">
-                <span class="setting-icon">🌓</span>
-                <span class="setting-text">Тема оформления</span>
-                <span class="setting-status" id="theme-status">Авто</span>
-            </div>
-        </div>
-
-        <div class="card" onclick="downloadExcel()">
-            <div class="setting-row">
-                <span class="setting-icon">📥</span>
-                <span class="setting-text">Скачать отчет</span>
-                <span class="setting-status">Excel</span>
-            </div>
-        </div>
-
-        <div class="history-list">
-            <div class="history-header">Последние операции</div>
-            <div id="history-list">
-                <div style="text-align:center; padding:20px; color:gray">Загрузка...</div>
-            </div>
+        <div style="font-weight:700; margin-bottom:10px; margin-left:5px">Последние операции</div>
+        <div id="history-list">
+            <div style="text-align:center; padding:20px; color:gray">Загрузка...</div>
         </div>
     </div>
 
@@ -129,7 +121,7 @@
         function loadBalance() {
             fetch(SERVER_URL + '/api/balance', {headers}).then(r=>r.json()).then(d=>{
                 document.getElementById('balance').innerText = d.balance + ' ₼';
-            }).catch(e => document.getElementById('balance').innerText = 'Ошибка');
+            }).catch(e => document.getElementById('balance').innerText = 'Нет связи');
         }
 
         async function loadHistory() {
@@ -212,7 +204,7 @@
             const cur = document.body.getAttribute('data-theme');
             const next = cur === 'dark' ? 'light' : 'dark';
             document.body.setAttribute('data-theme', next);
-            document.getElementById('theme-status').innerText = next === 'dark' ? 'Темная' : 'Светлая';
+            document.getElementById('theme-btn').innerText = next === 'dark' ? '☀️' : '🌙';
         }
 
         function showToast(txt) {
@@ -222,8 +214,7 @@
         }
 
         // Авто-тема
-        document.body.setAttribute('data-theme', tg.colorScheme);
-        document.getElementById('theme-status').innerText = tg.colorScheme === 'dark' ? 'Темная' : 'Светлая';
+        if(tg.colorScheme === 'dark') toggleTheme();
     </script>
 </body>
 </html>
