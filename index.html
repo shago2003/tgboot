@@ -10,40 +10,55 @@
         
         body { background: var(--bg); color: var(--text); font-family: -apple-system, sans-serif; margin: 0; padding: 16px; padding-bottom: 90px; -webkit-tap-highlight-color: transparent; transition: background 0.3s; }
         
-        /* === ЗАСТАВКА (PRELOADER) === */
+        /* === КРАСИВАЯ ЗАСТАВКА (PRELOADER) === */
         #loader {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: var(--bg); z-index: 9999;
             display: flex; align-items: center; justify-content: center;
             flex-direction: column; text-align: center;
-            transition: opacity 0.5s ease-out;
+            transition: opacity 0.8s ease-out; /* Плавное исчезновение */
         }
-        .loader-text {
-            font-size: 24px; font-weight: 700; color: var(--blue);
-            opacity: 0; transform: translateY(20px);
-            animation: fadeInUp 0.8s forwards;
+        
+        /* Анимация иконки */
+        .loader-icon {
+            font-size: 80px; margin-bottom: 20px;
+            animation: pulse 2s infinite ease-in-out;
+        }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+
+        /* Анимация текста */
+        .loader-title {
+            font-size: 28px; font-weight: 800; color: var(--blue);
+            opacity: 0; animation: fadeInUp 0.8s forwards 0.2s;
         }
         .loader-sub {
-            font-size: 14px; color: var(--gray); margin-top: 10px;
-            opacity: 0; animation: fadeIn 1s forwards 0.5s;
+            font-size: 15px; color: var(--gray); margin-top: 10px; margin-bottom: 40px;
+            opacity: 0; animation: fadeInUp 0.8s forwards 0.5s;
         }
-        @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
-        @keyframes fadeIn { to { opacity: 1; } }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* ШАПКА */
+        /* Крутящийся спиннер */
+        .spinner {
+            width: 30px; height: 30px;
+            border: 4px solid rgba(0, 122, 255, 0.1);
+            border-left-color: var(--blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            opacity: 0; animation: spin 1s linear infinite, fadeIn 1s forwards 0.8s;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @keyframes fadeIn { to { opacity: 1; } }
+        /* ========================================= */
+
+        /* Остальные стили (как было) */
         .app-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .app-title { font-size: 22px; font-weight: 800; }
-        .theme-btn { 
-            width: 40px; height: 40px; border-radius: 50%; background: var(--card); 
-            display: flex; align-items: center; justify-content: center; 
-            font-size: 20px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
+        .theme-btn { width: 40px; height: 40px; border-radius: 50%; background: var(--card); display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: 0.2s; }
+        .theme-btn:active { transform: scale(0.9); }
 
-        /* БАЛАНС */
         .balance-card { background: linear-gradient(135deg, #007aff, #0056b3); color: white; padding: 20px; border-radius: 16px; text-align: center; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,122,255,0.3); }
         .balance-amount { font-size: 36px; font-weight: 800; margin-top: 5px; }
 
-        /* ЭЛЕМЕНТЫ */
         .card { background: var(--card); border-radius: 12px; padding: 16px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; transition: 0.2s; }
         .card:active { transform: scale(0.98); }
         .card-col { display: block; width: 100%; }
@@ -55,19 +70,16 @@
         .btn-inc { background: var(--blue); }
         .btn-exp { background: var(--red); }
         
-        /* НАСТРОЙКИ */
         .setting-row { display: flex; align-items: center; width: 100%; }
         .setting-icon { font-size: 22px; margin-right: 15px; }
         .setting-text { font-size: 16px; font-weight: 500; flex-grow: 1; }
         .setting-status { font-size: 14px; color: var(--gray); }
 
-        /* ИСТОРИЯ */
         .history-header { font-size: 18px; font-weight: 700; margin-bottom: 10px; margin-left: 5px; margin-top: 20px;}
         .history-item { background: var(--card); padding: 12px 16px; border-radius: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
         .h-left { display: flex; flex-direction: column; }
         .del-btn { background: rgba(255, 59, 48, 0.1); color: var(--red); border: none; font-size: 18px; cursor: pointer; padding: 8px; border-radius: 8px; }
 
-        /* МЕНЮ */
         .tab-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card); border-top: 0.5px solid var(--gray); display: flex; justify-content: space-around; padding: 10px 0 25px; z-index: 100; }
         .tab-item { color: var(--gray); text-align: center; font-size: 10px; cursor: pointer; }
         .tab-item.active { color: var(--blue); }
@@ -83,8 +95,10 @@
 <body>
 
     <div id="loader">
-        <div class="loader-text">Добро пожаловать<br>в Личный Кабинет</div>
-        <div class="loader-sub">Загрузка финансов...</div>
+        <div class="loader-icon">💰</div>
+        <div class="loader-title">Мой Кошелек</div>
+        <div class="loader-sub">Загрузка данных...</div>
+        <div class="spinner"></div>
     </div>
 
     <div id="toast">✅ Готово</div>
@@ -154,26 +168,25 @@
     <script>
         const tg = window.Telegram.WebApp; tg.expand();
         
-        // !!! ВСТАВЬ ССЫЛКУ NGROK !!!
+        // !!! ВСТАВЬ СВОЮ ССЫЛКУ NGROK НИЖЕ !!!
         const SERVER_URL = "https://unsucceeded-idella-violative.ngrok-free.dev";
         const headers = { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' };
 
-        // --- ЛОГИКА АНИМАЦИИ ---
+        // --- УЛУЧШЕННАЯ ЛОГИКА АНИМАЦИИ ---
         checkAnim();
         function checkAnim() {
-            const isEnabled = localStorage.getItem('anim') !== 'off'; // По умолчанию Вкл
+            const isEnabled = localStorage.getItem('anim') !== 'off'; 
             const loader = document.getElementById('loader');
             
             document.getElementById('anim-status').innerText = isEnabled ? 'Вкл' : 'Выкл';
 
             if (isEnabled) {
-                // Если включено - ждем 1.5 секунды и скрываем
+                // Ждем 3 секунды (3000 миллисекунд)
                 setTimeout(() => {
                     loader.style.opacity = '0';
-                    setTimeout(() => loader.style.display = 'none', 500);
-                }, 1500);
+                    setTimeout(() => loader.style.display = 'none', 800); // Ждем пока исчезнет
+                }, 3000); // <--- ТУТ МЕНЯЕТСЯ ДЛИТЕЛЬНОСТЬ
             } else {
-                // Если выключено - скрываем мгновенно
                 loader.style.display = 'none';
             }
         }
@@ -281,7 +294,6 @@
             setTimeout(() => t.classList.remove('show'), 2000);
         }
 
-        // Авто-тема при старте
         if(tg.colorScheme === 'dark') toggleTheme();
     </script>
 </body>
