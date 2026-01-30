@@ -5,48 +5,70 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --bg: #f2f2f7; --card: #ffffff; --text: #000000; --blue: #007aff; --red: #ff3b30; --gray: #8e8e93; --header-bg: #ffffff; }
-        [data-theme="dark"] { --bg: #000000; --card: #1c1c1e; --text: #ffffff; --header-bg: #1c1c1e; }
+        :root { --bg: #f2f2f7; --card: #ffffff; --text: #000000; --blue: #007aff; --red: #ff3b30; --gray: #8e8e93; }
+        [data-theme="dark"] { --bg: #000000; --card: #1c1c1e; --text: #ffffff; }
         
-        body { background: var(--bg); color: var(--text); font-family: -apple-system, sans-serif; margin: 0; padding: 16px; padding-bottom: 90px; -webkit-tap-highlight-color: transparent; transition: background 0.3s, color 0.3s; }
+        body { background: var(--bg); color: var(--text); font-family: -apple-system, sans-serif; margin: 0; padding: 16px; padding-bottom: 90px; -webkit-tap-highlight-color: transparent; transition: background 0.3s; }
         
-        /* ШАПКА С КНОПКОЙ ТЕМЫ */
+        /* === ЗАСТАВКА (PRELOADER) === */
+        #loader {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg); z-index: 9999;
+            display: flex; align-items: center; justify-content: center;
+            flex-direction: column; text-align: center;
+            transition: opacity 0.5s ease-out;
+        }
+        .loader-text {
+            font-size: 24px; font-weight: 700; color: var(--blue);
+            opacity: 0; transform: translateY(20px);
+            animation: fadeInUp 0.8s forwards;
+        }
+        .loader-sub {
+            font-size: 14px; color: var(--gray); margin-top: 10px;
+            opacity: 0; animation: fadeIn 1s forwards 0.5s;
+        }
+        @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { to { opacity: 1; } }
+
+        /* ШАПКА */
         .app-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .app-title { font-size: 22px; font-weight: 800; }
         .theme-btn { 
             width: 40px; height: 40px; border-radius: 50%; background: var(--card); 
             display: flex; align-items: center; justify-content: center; 
             font-size: 20px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            transition: transform 0.2s;
         }
-        .theme-btn:active { transform: scale(0.9); }
 
-        /* Баланс */
+        /* БАЛАНС */
         .balance-card { background: linear-gradient(135deg, #007aff, #0056b3); color: white; padding: 20px; border-radius: 16px; text-align: center; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,122,255,0.3); }
         .balance-amount { font-size: 36px; font-weight: 800; margin-top: 5px; }
 
-        /* Карточки */
-        .card { background: var(--card); border-radius: 12px; padding: 16px; margin-bottom: 12px; transition: background 0.3s; }
-        .card-col { display: block; }
+        /* ЭЛЕМЕНТЫ */
+        .card { background: var(--card); border-radius: 12px; padding: 16px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; transition: 0.2s; }
+        .card:active { transform: scale(0.98); }
+        .card-col { display: block; width: 100%; }
         
-        input { width: 100%; padding: 12px; border-radius: 8px; border: none; background: var(--bg); color: var(--text); font-size: 16px; outline: none; margin-top: 5px; box-sizing: border-box; transition: background 0.3s; }
+        input { width: 100%; padding: 12px; border-radius: 8px; border: none; background: var(--bg); color: var(--text); font-size: 16px; outline: none; margin-top: 5px; box-sizing: border-box; }
         label { font-size: 12px; color: var(--gray); margin-left: 4px; }
         
         .btn { width: 100%; padding: 14px; border-radius: 12px; border: none; font-size: 16px; font-weight: bold; color: white; cursor: pointer; margin-top: 10px; }
-        .btn:active { opacity: 0.8; }
         .btn-inc { background: var(--blue); }
         .btn-exp { background: var(--red); }
-        .btn-excel { background: var(--card); color: var(--blue); border: 1px solid var(--blue); margin-bottom: 20px; }
+        
+        /* НАСТРОЙКИ */
+        .setting-row { display: flex; align-items: center; width: 100%; }
+        .setting-icon { font-size: 22px; margin-right: 15px; }
+        .setting-text { font-size: 16px; font-weight: 500; flex-grow: 1; }
+        .setting-status { font-size: 14px; color: var(--gray); }
 
-        /* История */
+        /* ИСТОРИЯ */
+        .history-header { font-size: 18px; font-weight: 700; margin-bottom: 10px; margin-left: 5px; margin-top: 20px;}
         .history-item { background: var(--card); padding: 12px 16px; border-radius: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
         .h-left { display: flex; flex-direction: column; }
-        .h-val { font-weight: 700; font-size: 15px; }
-        .h-desc { font-size: 12px; opacity: 0.7; margin-top: 2px; }
         .del-btn { background: rgba(255, 59, 48, 0.1); color: var(--red); border: none; font-size: 18px; cursor: pointer; padding: 8px; border-radius: 8px; }
 
-        /* Таббар */
-        .tab-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card); border-top: 0.5px solid var(--gray); display: flex; justify-content: space-around; padding: 10px 0 25px; z-index: 100; transition: background 0.3s; }
+        /* МЕНЮ */
+        .tab-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card); border-top: 0.5px solid var(--gray); display: flex; justify-content: space-around; padding: 10px 0 25px; z-index: 100; }
         .tab-item { color: var(--gray); text-align: center; font-size: 10px; cursor: pointer; }
         .tab-item.active { color: var(--blue); }
         .tab-icon { font-size: 24px; display: block; margin-bottom: 2px; }
@@ -59,6 +81,11 @@
     </style>
 </head>
 <body>
+
+    <div id="loader">
+        <div class="loader-text">Добро пожаловать<br>в Личный Кабинет</div>
+        <div class="loader-sub">Загрузка финансов...</div>
+    </div>
 
     <div id="toast">✅ Готово</div>
 
@@ -95,9 +122,24 @@
     </div>
 
     <div id="view-history" class="view-section">
-        <button class="btn btn-excel" onclick="downloadExcel()">📥 Скачать отчет Excel</button>
         
-        <div style="font-weight:700; margin-bottom:10px; margin-left:5px">Последние операции</div>
+        <div class="card" onclick="toggleAnim()">
+            <div class="setting-row">
+                <span class="setting-icon">✨</span>
+                <span class="setting-text">Анимация при входе</span>
+                <span class="setting-status" id="anim-status">Вкл</span>
+            </div>
+        </div>
+
+        <div class="card" onclick="downloadExcel()">
+            <div class="setting-row">
+                <span class="setting-icon">📥</span>
+                <span class="setting-text">Скачать отчет</span>
+                <span class="setting-status">Excel</span>
+            </div>
+        </div>
+
+        <div class="history-header">Последние операции</div>
         <div id="history-list">
             <div style="text-align:center; padding:20px; color:gray">Загрузка...</div>
         </div>
@@ -106,15 +148,44 @@
     <div class="tab-bar">
         <div class="tab-item active" onclick="switchTab('view-income')"><span class="tab-icon">➕</span>Приход</div>
         <div class="tab-item" onclick="switchTab('view-expense')"><span class="tab-icon">➖</span>Расход</div>
-        <div class="tab-item" onclick="switchTab('view-history')"><span class="tab-icon">📝</span>История</div>
+        <div class="tab-item" onclick="switchTab('view-history')"><span class="tab-icon">⚙️</span>Меню</div>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp; tg.expand();
         
-        // !!! ВСТАВЬ СЮДА ССЫЛКУ NGROK !!!
+        // !!! ВСТАВЬ ССЫЛКУ NGROK !!!
         const SERVER_URL = "https://unsucceeded-idella-violative.ngrok-free.dev";
         const headers = { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' };
+
+        // --- ЛОГИКА АНИМАЦИИ ---
+        checkAnim();
+        function checkAnim() {
+            const isEnabled = localStorage.getItem('anim') !== 'off'; // По умолчанию Вкл
+            const loader = document.getElementById('loader');
+            
+            document.getElementById('anim-status').innerText = isEnabled ? 'Вкл' : 'Выкл';
+
+            if (isEnabled) {
+                // Если включено - ждем 1.5 секунды и скрываем
+                setTimeout(() => {
+                    loader.style.opacity = '0';
+                    setTimeout(() => loader.style.display = 'none', 500);
+                }, 1500);
+            } else {
+                // Если выключено - скрываем мгновенно
+                loader.style.display = 'none';
+            }
+        }
+
+        function toggleAnim() {
+            const current = localStorage.getItem('anim') !== 'off';
+            const next = !current;
+            localStorage.setItem('anim', next ? 'on' : 'off');
+            document.getElementById('anim-status').innerText = next ? 'Вкл' : 'Выкл';
+            showToast(next ? 'Анимация включена' : 'Анимация выключена');
+        }
+        // -----------------------
 
         loadBalance();
 
@@ -130,7 +201,7 @@
                 const res = await fetch(SERVER_URL + '/api/history', {headers});
                 const data = await res.json();
                 list.innerHTML = '';
-                if(!data.length) list.innerHTML = '<div style="text-align:center;padding:20px;opacity:0.5">История пуста</div>';
+                if(!data.length) list.innerHTML = '<div style="text-align:center;padding:20px;opacity:0.5">Пусто</div>';
                 
                 data.forEach(item => {
                     const isInc = item.debit > 0;
@@ -138,30 +209,28 @@
                     const sign = isInc ? '+' : '-';
                     const val = isInc ? item.debit : item.credit;
                     const desc = isInc ? item.transfer : `${item.category} (${item.comment})`;
-                    
                     list.innerHTML += `
                         <div class="history-item">
                             <div class="h-left">
-                                <span class="h-val" style="color:${color}">${sign} ${val} ₼</span>
-                                <span class="h-desc">${desc}</span>
-                                <span style="font-size:10px; opacity:0.5">${item.date}</span>
+                                <span style="font-weight:700; font-size:15px; color:${color}">${sign} ${val} ₼</span>
+                                <span style="font-size:12px; opacity:0.7">${desc}</span>
                             </div>
                             <button class="del-btn" onclick="delItem(${item.id})">🗑</button>
                         </div>
                     `;
                 });
-            } catch(e) { list.innerHTML = 'Ошибка загрузки'; }
+            } catch(e) { list.innerHTML = 'Ошибка'; }
         }
 
         async function delItem(id) {
-            if(!confirm("Удалить эту запись?")) return;
+            if(!confirm("Удалить?")) return;
             try {
                 const res = await fetch(SERVER_URL + '/api/delete', { method:'POST', headers, body:JSON.stringify({id}) });
                 const ans = await res.json();
                 if(ans.status === 'deleted') {
                     document.getElementById('balance').innerText = ans.new_balance + ' ₼';
                     loadHistory();
-                    showToast("🗑 Удалено");
+                    showToast("Удалено");
                 }
             } catch(e) { showToast("Ошибка"); }
         }
@@ -170,22 +239,21 @@
             let data = {};
             if (type === 'income') {
                 const val = document.getElementById('inc_sum').value;
-                if (!val) return alert('Введите сумму');
+                if (!val) return alert('Сумма?');
                 data = { debit: val, transfer: document.getElementById('inc_from').value + '-' + document.getElementById('inc_to').value };
             } else {
                 const val = document.getElementById('exp_sum').value;
-                if (!val) return alert('Введите сумму');
+                if (!val) return alert('Сумма?');
                 data = { credit: val, category: document.getElementById('exp_cat').value, comment: document.getElementById('exp_com').value };
             }
             try {
-                showToast('⏳ Сохранение...');
+                showToast('Сохранение...');
                 const res = await fetch(SERVER_URL + '/api/add', { method: 'POST', headers, body: JSON.stringify(data) });
                 const ans = await res.json();
                 if (ans.status === 'ok') {
                     document.getElementById('balance').innerText = ans.new_balance + ' ₼';
                     document.querySelectorAll('input').forEach(i => i.value = '');
-                    showToast('✅ Готово!'); 
-                    tg.HapticFeedback.notificationOccurred('success');
+                    showToast('Готово!'); tg.HapticFeedback.notificationOccurred('success');
                 }
             } catch (e) { showToast('Нет связи'); }
         }
@@ -213,7 +281,7 @@
             setTimeout(() => t.classList.remove('show'), 2000);
         }
 
-        // Авто-тема
+        // Авто-тема при старте
         if(tg.colorScheme === 'dark') toggleTheme();
     </script>
 </body>
