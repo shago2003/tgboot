@@ -1,0 +1,49 @@
+// Переключение вкладок
+function openTab(tabName) {
+    const tabs = document.querySelectorAll('.tab-content');
+    tabs.forEach(t => t.style.display = 'none');
+    document.getElementById(tabName).style.display = 'block';
+    
+    // Подсветка активной кнопки в таббаре
+    document.querySelectorAll('.tab-item').forEach(i => i.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+}
+
+// Логика добавления Прихода (Главная)
+function sendIncome() {
+    const amount = parseFloat(document.getElementById('main_amount').value);
+    const from = document.getElementById('from').value;
+    const to = document.getElementById('to').value;
+    
+    const data = {
+        action: "add_transaction",
+        debit: amount,
+        transfer: `${from}-${to}` // Формат банк-офис
+    };
+    tg.sendData(JSON.stringify(data));
+}
+
+// Логика добавления Расхода
+function sendExpense() {
+    const amount = parseFloat(document.getElementById('exp_amount').value);
+    const cat = document.getElementById('category').value;
+    const comm = document.getElementById('comment').value;
+    
+    const data = {
+        action: "add_transaction",
+        credit: amount,
+        category: cat,
+        comment: comm
+    };
+    tg.sendData(JSON.stringify(data));
+}
+
+// Удаление
+function deleteItem(id) {
+    tg.showConfirm("Вы уверены, что хотите удалить запись?", (confirmed) => {
+        if (confirmed) {
+            tg.sendData(JSON.stringify({ action: "delete_record", id: id }));
+            tg.HapticFeedback.notificationOccurred('warning');
+        }
+    });
+}
