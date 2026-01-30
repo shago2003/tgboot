@@ -11,6 +11,7 @@
             --text-color: #000000;
             --tint-color: #007aff;
             --secondary-text: #8e8e93;
+            --danger-color: #ff3b30;
         }
         [data-theme="dark"] {
             --bg-color: #000000;
@@ -24,7 +25,7 @@
             color: var(--text-color);
             font-family: -apple-system, BlinkMacSystemFont, sans-serif;
             margin: 0; padding: 20px 16px 100px 16px;
-            transition: all 0.3s ease;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .header { font-size: 28px; font-weight: 700; margin-bottom: 20px; }
@@ -37,8 +38,7 @@
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         }
 
-        .input-group { margin-bottom: 12px; }
-        label { display: block; font-size: 13px; color: var(--secondary-text); margin-bottom: 4px; margin-left: 4px; }
+        label { display: block; font-size: 13px; color: var(--secondary-text); margin-bottom: 6px; margin-left: 4px; }
         
         input {
             width: 100%;
@@ -48,7 +48,8 @@
             border-radius: 10px;
             color: var(--text-color);
             box-sizing: border-box;
-            font-size: 16px;
+            font-size: 17px;
+            outline: none;
         }
 
         .btn {
@@ -61,24 +62,28 @@
             font-weight: 600;
             font-size: 17px;
             margin-top: 10px;
+            cursor: pointer;
         }
+        
+        .btn:active { opacity: 0.8; }
 
-        /* Навигация (Tab Bar) */
+        /* Навигация */
         .tab-bar {
             position: fixed;
             bottom: 0; left: 0; right: 0;
-            background: rgba(var(--card-bg), 0.8);
-            backdrop-filter: blur(20px);
+            background: var(--card-bg);
+            border-top: 0.5px solid var(--secondary-text);
             display: flex;
             justify-content: space-around;
             padding: 10px 0 25px 0;
-            border-top: 0.5px solid var(--secondary-text);
+            z-index: 100;
         }
 
         .tab-item { color: var(--secondary-text); text-align: center; font-size: 11px; cursor: pointer; }
         .tab-item.active { color: var(--tint-color); }
+        .tab-icon { font-size: 24px; margin-bottom: 2px; display: block; }
 
-        .tab-content { display: none; animation: fadeIn 0.3s ease; }
+        .tab-content { display: none; animation: fadeIn 0.2s ease; }
         .tab-content.active { display: block; }
 
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -90,12 +95,12 @@
         <div class="header">Касса</div>
         <div class="card">
             <label>Сумма (манат)</label>
-            <input type="number" id="main_amount" placeholder="0.00">
+            <input type="number" id="main_amount" placeholder="0.00" inputmode="decimal">
         </div>
         <div class="card">
             <label>Откуда</label>
             <input type="text" id="from" placeholder="Напр: Банк">
-            <div style="margin-top: 10px;"></div>
+            <div style="margin-top: 12px;"></div>
             <label>Куда</label>
             <input type="text" id="to" placeholder="Напр: Офис">
         </div>
@@ -106,32 +111,52 @@
         <div class="header">Расходы</div>
         <div class="card">
             <label>Сумма</label>
-            <input type="number" id="exp_amount" placeholder="0.00">
+            <input type="number" id="exp_amount" placeholder="0.00" inputmode="decimal">
         </div>
         <div class="card">
             <label>Категория</label>
             <input type="text" id="category" placeholder="Напр: Еда">
-            <div style="margin-top: 10px;"></div>
+            <div style="margin-top: 12px;"></div>
             <label>Комментарий</label>
             <input type="text" id="comment" placeholder="Напр: Яйца">
         </div>
-        <button class="btn" style="background: #ff3b30;" onclick="sendExpense()">Записать расход</button>
+        <button class="btn" style="background: var(--danger-color);" onclick="sendExpense()">Записать расход</button>
     </div>
 
-    <div id="settings" class="tab-content">
-        <div class="header">Настройки</div>
+    <div id="history" class="tab-content">
+        <div class="header">История</div>
+        
+        <div class="card" onclick="tg.sendData(JSON.stringify({action: 'get_history'}))">
+            <div style="text-align: center; padding: 20px;">
+                <div style="font-size: 40px; margin-bottom: 10px;">📜</div>
+                <div style="color: var(--tint-color); font-weight: 600;">Открыть историю в чате</div>
+                <div style="font-size: 12px; color: var(--secondary-text); margin-top: 5px;">
+                    Нажмите, чтобы просмотреть<br>и удалить записи
+                </div>
+            </div>
+        </div>
+
+        <div class="header" style="font-size: 20px; margin-top: 30px;">Настройки</div>
+        
         <div class="card" onclick="tg.sendData(JSON.stringify({action: 'download_excel'}))">
             <div style="color: var(--tint-color); font-weight: 600;">⬇️ Скачать Excel отчет</div>
         </div>
+        
         <div class="card" onclick="toggleTheme()">
-            <div id="theme-text">🌙 Темная тема: Выкл</div>
+            <div id="theme-text">🌙 Темная тема: Авто</div>
         </div>
     </div>
 
     <div class="tab-bar">
-        <div class="tab-item active" onclick="showTab('main')">🏦<br>Касса</div>
-        <div class="tab-item" onclick="showTab('expense')">💸<br>Расходы</div>
-        <div class="tab-item" onclick="showTab('settings')">⚙️<br>Опции</div>
+        <div class="tab-item active" onclick="showTab('main')">
+            <span class="tab-icon">🏦</span>Касса
+        </div>
+        <div class="tab-item" onclick="showTab('expense')">
+            <span class="tab-icon">💸</span>Расходы
+        </div>
+        <div class="tab-item" onclick="showTab('history')">
+            <span class="tab-icon">🕒</span>История
+        </div>
     </div>
 
     <script>
@@ -146,18 +171,24 @@
         }
 
         function sendIncome() {
+            const amount = document.getElementById('main_amount').value;
+            if (!amount) return tg.showAlert("Введите сумму!");
+            
             const data = {
                 action: 'add_transaction',
-                debit: document.getElementById('main_amount').value,
+                debit: amount,
                 transfer: document.getElementById('from').value + '-' + document.getElementById('to').value
             };
             tg.sendData(JSON.stringify(data));
         }
 
         function sendExpense() {
+            const amount = document.getElementById('exp_amount').value;
+            if (!amount) return tg.showAlert("Введите сумму!");
+
             const data = {
                 action: 'add_transaction',
-                credit: document.getElementById('exp_amount').value,
+                credit: amount,
                 category: document.getElementById('category').value,
                 comment: document.getElementById('comment').value
             };
@@ -168,11 +199,11 @@
             const curr = document.body.getAttribute('data-theme');
             const next = curr === 'dark' ? 'light' : 'dark';
             document.body.setAttribute('data-theme', next);
-            document.getElementById('theme-text').innerText = next === 'dark' ? '☀️ Темная тема: Вкл' : '🌙 Темная тема: Выкл';
+            document.getElementById('theme-text').innerText = next === 'dark' ? '☀️ Светлая тема' : '🌙 Темная тема';
         }
-        
-        // Синхронизация с темой ТГ
-        document.body.setAttribute('data-theme', tg.colorScheme);
+
+        // Авто-тема
+        if (tg.colorScheme === 'dark') toggleTheme();
     </script>
 </body>
 </html>
