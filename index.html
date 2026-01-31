@@ -22,6 +22,7 @@
         
         #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 9999; display: flex; align-items: center; justify-content: center; flex-direction: column; transition: opacity 0.5s; }
         .loader-icon { font-size: 80px; animation: pulse 2s infinite; }
+        .error-msg { color: red; margin-top: 20px; font-weight: bold; font-size: 14px; max-width: 80%; text-align: center; display: none; }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
         .spinner { width: 30px; height: 30px; border: 4px solid rgba(0,122,255,0.1); border-left-color: #007aff; border-radius: 50%; margin-top: 20px; animation: spin 1s linear infinite; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
@@ -46,7 +47,6 @@
         .file-check { font-size: 18px; color: #007aff; display: none; }
         .file-item.active .file-check { display: block; }
 
-        /* ИСТОРИЯ */
         .history-item { padding: 15px; display: flex; justify-content: space-between; align-items: center; }
         .history-bal { font-size: 12px; color: var(--gray); margin-top: 4px; font-weight: 500; }
         .del-btn { background: rgba(255, 59, 48, 0.1); color: #ff3b30; border: none; width: 38px; height: 38px; border-radius: 12px; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
@@ -56,16 +56,8 @@
         .setting-text { font-size: 17px; font-weight: 600; flex: 1; }
         .setting-status { font-size: 15px; color: var(--gray); font-weight: 500; }
 
-        /* НОВОЕ: СПИСОК КАТЕГОРИЙ (DROPDOWN) */
-        .suggestions-box {
-            position: absolute; width: calc(100% - 40px); background: var(--card-bg); 
-            backdrop-filter: blur(20px); border: 1px solid var(--glass-border);
-            border-radius: 14px; max-height: 250px; overflow-y: auto; z-index: 1000;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2); display: none; margin-top: 5px;
-        }
+        .suggestions-box { position: absolute; width: calc(100% - 40px); background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 14px; max-height: 250px; overflow-y: auto; z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.2); display: none; margin-top: 5px; }
         .suggestion-item { padding: 12px 16px; border-bottom: 1px solid rgba(128,128,128,0.1); cursor: pointer; font-size: 16px; }
-        .suggestion-item:last-child { border-bottom: none; }
-        .suggestion-item:active { background: rgba(128,128,128,0.1); }
 
         .tab-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card-bg); backdrop-filter: blur(30px); border-top: 1px solid var(--glass-border); display: flex; justify-content: space-around; padding: 12px 0 30px; z-index: 100; border-radius: 25px 25px 0 0; }
         .tab-item { color: var(--gray); text-align: center; font-size: 10px; width: 25%; font-weight: 600; }
@@ -81,7 +73,14 @@
 </head>
 <body>
 
-    <div id="loader"><div class="loader-icon">🏪</div><div style="margin-top:10px;font-weight:700">Загрузка касс...</div><div class="spinner"></div></div>
+    <div id="loader">
+        <div class="loader-icon">🏪</div>
+        <div style="margin-top:10px;font-weight:700">Загрузка...</div>
+        <div class="spinner"></div>
+        <div id="error-msg" class="error-msg"></div>
+        <button id="retry-btn" class="btn" style="width:auto; padding:10px 20px; margin-top:15px; display:none" onclick="location.reload()">Обновить</button>
+    </div>
+
     <div id="toast">Готово</div>
 
     <div class="balance-card glass">
@@ -104,12 +103,9 @@
         <div class="card glass">
             <label>Сумма</label><input type="number" id="exp_sum" placeholder="0.00">
             <div style="height:15px"></div>
-            
             <label>Категория</label>
             <input type="text" id="exp_cat" placeholder="Начните вводить..." autocomplete="off" oninput="filterCategories()" onfocus="filterCategories()">
-            
             <div id="cat-suggestions" class="suggestions-box"></div>
-
             <div style="height:15px"></div>
             <label>Комментарий</label><input type="text" id="exp_com" placeholder="Детали">
         </div>
@@ -122,7 +118,6 @@
 
     <div id="view-settings" class="view-section">
         <div style="margin: 0 0 10px 10px; font-weight: 800; font-size: 20px;">🏪 Мои Кассы</div>
-        
         <div class="card glass">
             <div id="files-list">Загрузка...</div>
             <div style="margin-top: 15px; border-top: 1px solid var(--glass-border); padding-top: 15px;">
@@ -131,7 +126,6 @@
             </div>
             <button class="btn btn-transfer" onclick="toggleTransferMode()">💸 Переместить деньги</button>
         </div>
-
         <div id="transfer-block" class="card glass" style="display:none; border: 2px solid #34c759;">
             <div style="font-weight:700; margin-bottom:10px; color:#34c759">Перевод между кассами</div>
             <label>Куда перевести:</label>
@@ -141,7 +135,6 @@
             <input type="number" id="transfer-amount" placeholder="0.00">
             <button class="btn btn-inc" onclick="doTransfer()" style="background:#34c759; margin-top:15px">Подтвердить перевод</button>
         </div>
-
         <div style="margin: 20px 0 10px 10px; font-weight: 800; font-size: 20px;">Опции</div>
         <div class="card glass setting-row" onclick="downloadExcel()">
             <span class="setting-icon">📊</span><span class="setting-text">Скачать Excel</span><span class="setting-status">XLSX</span>
@@ -164,11 +157,23 @@
     <script>
         const tg = window.Telegram.WebApp; tg.expand();
         
-        // !!! ВСТАВЬ СЮДА ССЫЛКУ NGROK !!!
-        const SERVER_URL = "https://unsucceeded-idella-violative.ngrok-free.dev ";
+        // !!! ПРОВЕРЬ ССЫЛКУ ЕЩЕ РАЗ !!!
+        const SERVER_URL = "https://unsucceeded-idella-violative.ngrok-free.dev";
         const headers = { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' };
 
-        // === БАЗА КАТЕГОРИЙ (С твоего скрина) ===
+        // === ПРОВЕРКА СВЯЗИ ===
+        // Если через 5 секунд приложение не загрузится, покажем ошибку
+        setTimeout(() => {
+            const loader = document.getElementById('loader');
+            if (loader.style.display !== 'none') {
+                const err = document.getElementById('error-msg');
+                err.style.display = 'block';
+                err.innerHTML = `⚠️ Ошибка связи!<br>Не могу подключиться к: <br><small>${SERVER_URL}</small><br><br>Проверь Ngrok и обнови ссылку на GitHub.`;
+                document.getElementById('retry-btn').style.display = 'block';
+                document.querySelector('.spinner').style.display = 'none';
+            }
+        }, 5000);
+
         const CATEGORIES = [
             "ЕДА", "ПЕРЕВОЗКА", "УТЕРЯ", "МЕБЕЛЬ", "ОХРАНА", "АРЕНДА СКЛАДА", "АРЕНДА ГУЛЬДЕН",
             "БЕНЗИН", "Карго", "РАБОЧИЕ", "КАНЦЕЛЯРИЯ", "ИНТЕРНЕТ", "ПОТЕНТ", "АРЕНДА КВАРТИРА",
@@ -181,48 +186,30 @@
             "ЭРИК", "Расходы Кусары Офис", "Чингиз карго"
         ];
 
-        // === ЛОГИКА ПОИСКА КАТЕГОРИЙ ===
         function filterCategories() {
             const input = document.getElementById('exp_cat');
             const box = document.getElementById('cat-suggestions');
             const val = input.value.toLowerCase();
-            
             box.innerHTML = '';
-            
-            // Фильтруем список
             const filtered = CATEGORIES.filter(c => c.toLowerCase().includes(val));
-            
             if (filtered.length > 0) {
                 box.style.display = 'block';
                 filtered.forEach(cat => {
                     const div = document.createElement('div');
-                    div.className = 'suggestion-item';
-                    div.innerText = cat;
-                    div.onclick = () => {
-                        input.value = cat;
-                        box.style.display = 'none';
-                    };
+                    div.className = 'suggestion-item'; div.innerText = cat;
+                    div.onclick = () => { input.value = cat; box.style.display = 'none'; };
                     box.appendChild(div);
                 });
-            } else {
-                box.style.display = 'none';
-            }
+            } else { box.style.display = 'none'; }
         }
-
-        // Скрываем список при клике вне его
-        document.addEventListener('click', function(e) {
-            if (e.target.id !== 'exp_cat') {
-                document.getElementById('cat-suggestions').style.display = 'none';
-            }
-        });
-        // ======================================
+        document.addEventListener('click', function(e) { if (e.target.id !== 'exp_cat') document.getElementById('cat-suggestions').style.display = 'none'; });
 
         checkAnim();
         function checkAnim() {
             const isEnabled = localStorage.getItem('anim') !== 'off';
             document.getElementById('anim-status').innerText = isEnabled ? 'Вкл' : 'Выкл';
-            if (isEnabled) { setTimeout(() => { document.getElementById('loader').style.opacity = '0'; setTimeout(()=>document.getElementById('loader').style.display='none',500); }, 1500); } 
-            else { document.getElementById('loader').style.display = 'none'; }
+            // Если анимация включена, скроем ее только когда загрузится баланс (см. loadBalance)
+            // Но на случай ошибки, таймер выше сработает
         }
         function toggleAnim() {
             const next = localStorage.getItem('anim') === 'off' ? 'on' : 'off';
@@ -233,28 +220,19 @@
         loadBalance();
 
         async function loadFiles() {
-            const res = await fetch(SERVER_URL + '/api/files', {headers});
-            const data = await res.json();
-            const list = document.getElementById('files-list');
-            const select = document.getElementById('transfer-target');
-            list.innerHTML = ''; select.innerHTML = '';
-            
-            document.getElementById('active-file-name').innerText = data.active;
-            
-            data.files.forEach(f => {
-                const isActive = f === data.active;
-                list.innerHTML += `
-                    <div class="file-item ${isActive ? 'active' : ''}">
-                        <div onclick="setFile('${f}')" style="flex:1; display:flex; align-items:center">
-                            <span class="file-name">${f}</span>
-                            ${isActive ? '<span class="file-check" style="margin-left:10px">✅</span>' : ''}
-                        </div>
-                        ${f !== 'Главная Касса' ? `<button class="del-btn" style="width:30px; height:30px; margin-left:10px" onclick="deleteFile('${f}')">✕</button>` : ''}
-                    </div>`;
-                if (!isActive) {
-                    const option = document.createElement("option"); option.text = f; option.value = f; select.add(option);
-                }
-            });
+            try {
+                const res = await fetch(SERVER_URL + '/api/files', {headers});
+                const data = await res.json();
+                const list = document.getElementById('files-list');
+                const select = document.getElementById('transfer-target');
+                list.innerHTML = ''; select.innerHTML = '';
+                document.getElementById('active-file-name').innerText = data.active;
+                data.files.forEach(f => {
+                    const isActive = f === data.active;
+                    list.innerHTML += `<div class="file-item ${isActive ? 'active' : ''}"><div onclick="setFile('${f}')" style="flex:1; display:flex; align-items:center"><span class="file-name">${f}</span>${isActive ? '<span class="file-check" style="margin-left:10px">✅</span>' : ''}</div>${f !== 'Главная Касса' ? `<button class="del-btn" style="width:30px; height:30px; margin-left:10px" onclick="deleteFile('${f}')">✕</button>` : ''}</div>`;
+                    if (!isActive) { const option = document.createElement("option"); option.text = f; option.value = f; select.add(option); }
+                });
+            } catch (e) { console.error(e); }
         }
         async function setFile(name) {
             if(!confirm(`Переключиться на кассу "${name}"?`)) return;
@@ -272,15 +250,9 @@
             if(!confirm(`Удалить кассу "${name}" и ВСЕ её операции?`)) return;
             const res = await fetch(SERVER_URL + '/api/files/delete', {method:'POST', headers, body:JSON.stringify({name})});
             const ans = await res.json();
-            if(ans.status === 'ok') {
-                loadBalance(); loadFiles(); loadHistory(); showToast('Касса удалена');
-            } else { showToast(ans.message); }
+            if(ans.status === 'ok') { loadBalance(); loadFiles(); loadHistory(); showToast('Касса удалена'); } else { showToast(ans.message); }
         }
-
-        function toggleTransferMode() {
-            const block = document.getElementById('transfer-block');
-            block.style.display = block.style.display === 'none' ? 'block' : 'none';
-        }
+        function toggleTransferMode() { const block = document.getElementById('transfer-block'); block.style.display = block.style.display === 'none' ? 'block' : 'none'; }
         async function doTransfer() {
             const target = document.getElementById('transfer-target').value;
             const amount = document.getElementById('transfer-amount').value;
@@ -289,17 +261,23 @@
             if(!confirm(`Перевести ${amount} ₼ в кассу "${target}"?`)) return;
             const res = await fetch(SERVER_URL + '/api/transfer', { method: 'POST', headers, body: JSON.stringify({ to_kassa: target, amount: amount }) });
             const ans = await res.json();
-            if(ans.status === 'ok') {
-                document.getElementById('balance').innerText = ans.new_balance + ' ₼';
-                document.getElementById('transfer-amount').value = '';
-                document.getElementById('transfer-block').style.display = 'none';
-                showToast("Успешно переведено!");
-            } else { showToast("Ошибка перевода"); }
+            if(ans.status === 'ok') { document.getElementById('balance').innerText = ans.new_balance + ' ₼'; document.getElementById('transfer-amount').value = ''; document.getElementById('transfer-block').style.display = 'none'; showToast("Успешно переведено!"); } else { showToast("Ошибка перевода"); }
         }
 
         function loadBalance() {
-            fetch(SERVER_URL + '/api/balance', {headers}).then(r=>r.json()).then(d=>{
+            // Главная функция загрузки. Если она сработает, уберем лоадер.
+            fetch(SERVER_URL + '/api/balance', {headers})
+            .then(r=>r.json())
+            .then(d=>{
                 document.getElementById('balance').innerText = d.balance + ' ₼';
+                // УСПЕХ: Прячем загрузку
+                const loader = document.getElementById('loader');
+                loader.style.opacity = '0';
+                setTimeout(()=>loader.style.display='none', 500);
+            })
+            .catch(e => {
+                // Ошибка связи ловится таймером выше, но можно и тут
+                console.log("Ошибка загрузки баланса");
             });
             loadFiles();
         }
@@ -316,37 +294,33 @@
                 if (!val) return showToast('Сумма?');
                 data = { credit: val, category: document.getElementById('exp_cat').value, comment: document.getElementById('exp_com').value };
             }
-            const res = await fetch(SERVER_URL + '/api/add', { method: 'POST', headers, body: JSON.stringify(data) });
-            const ans = await res.json();
-            if (ans.status === 'ok') {
-                document.getElementById('balance').innerText = ans.new_balance + ' ₼';
-                document.querySelectorAll('input').forEach(i => i.value = '');
-                showToast('Успешно'); tg.HapticFeedback.notificationOccurred('success');
-            }
+            try {
+                const res = await fetch(SERVER_URL + '/api/add', { method: 'POST', headers, body: JSON.stringify(data) });
+                const ans = await res.json();
+                if (ans.status === 'ok') {
+                    document.getElementById('balance').innerText = ans.new_balance + ' ₼';
+                    document.querySelectorAll('input').forEach(i => i.value = '');
+                    showToast('Успешно'); tg.HapticFeedback.notificationOccurred('success');
+                }
+            } catch(e) { showToast('Ошибка связи'); }
         }
 
         async function loadHistory() {
             const list = document.getElementById('history-list');
-            const res = await fetch(SERVER_URL + '/api/history', {headers});
-            const data = await res.json();
-            list.innerHTML = '';
-            if(!data.length) list.innerHTML = '<div style="text-align:center;padding:20px;opacity:0.5">Пусто</div>';
-            data.forEach(item => {
-                const isInc = item.debit > 0;
-                const color = isInc ? '#34c759' : '#ff3b30';
-                const sign = isInc ? '+' : '-';
-                const val = isInc ? item.debit : item.credit;
-                const desc = isInc ? item.transfer : `${item.category} (${item.comment})`;
-                list.innerHTML += `
-                    <div class="card glass history-item">
-                        <div>
-                            <div style="font-weight:800; font-size:17px; color:${color}">${sign} ${val} ₼</div>
-                            <div style="font-size:13px; opacity:0.7; margin-top:4px; font-weight:600">${desc}</div>
-                            <div class="history-bal">Остаток: ${item.balance} ₼</div>
-                        </div>
-                        <button class="del-btn" onclick="delItem(${item.id})">🗑</button>
-                    </div>`;
-            });
+            try {
+                const res = await fetch(SERVER_URL + '/api/history', {headers});
+                const data = await res.json();
+                list.innerHTML = '';
+                if(!data.length) list.innerHTML = '<div style="text-align:center;padding:20px;opacity:0.5">Пусто</div>';
+                data.forEach(item => {
+                    const isInc = item.debit > 0;
+                    const color = isInc ? '#34c759' : '#ff3b30';
+                    const sign = isInc ? '+' : '-';
+                    const val = isInc ? item.debit : item.credit;
+                    const desc = isInc ? item.transfer : `${item.category} (${item.comment})`;
+                    list.innerHTML += `<div class="card glass history-item"><div><div style="font-weight:800; font-size:17px; color:${color}">${sign} ${val} ₼</div><div style="font-size:13px; opacity:0.7; margin-top:4px; font-weight:600">${desc}</div><div class="history-bal">Остаток: ${item.balance} ₼</div></div><button class="del-btn" onclick="delItem(${item.id})">🗑</button></div>`;
+                });
+            } catch(e){}
         }
 
         async function delItem(id) {
@@ -381,4 +355,3 @@
     </script>
 </body>
 </html>
-
