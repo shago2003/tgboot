@@ -126,15 +126,23 @@
             </div>
             <button class="btn btn-transfer" onclick="toggleTransferMode()">💸 Переместить деньги</button>
         </div>
+        
         <div id="transfer-block" class="card glass" style="display:none; border: 2px solid #34c759;">
             <div style="font-weight:700; margin-bottom:10px; color:#34c759">Перевод между кассами</div>
-            <label>Куда перевести:</label>
+            
+            <label>Откуда списать:</label>
+            <select id="transfer-source" style="padding:16px; width:100%; border-radius:14px; border:none; background:rgba(128,128,128,0.1); margin-top:5px"></select>
+            
+            <div style="height:10px"></div>
+            <label>Куда зачислить:</label>
             <select id="transfer-target" style="padding:16px; width:100%; border-radius:14px; border:none; background:rgba(128,128,128,0.1); margin-top:5px"></select>
+            
             <div style="height:10px"></div>
             <label>Сумма:</label>
             <input type="number" id="transfer-amount" placeholder="0.00">
             <button class="btn btn-inc" onclick="doTransfer()" style="background:#34c759; margin-top:15px">Подтвердить перевод</button>
         </div>
+
         <div style="margin: 20px 0 10px 10px; font-weight: 800; font-size: 20px;">Опции</div>
         <div class="card glass setting-row" onclick="downloadExcel()">
             <span class="setting-icon">📊</span><span class="setting-text">Скачать Excel</span><span class="setting-status">XLSX</span>
@@ -157,12 +165,10 @@
     <script>
         const tg = window.Telegram.WebApp; tg.expand();
         
-        // !!! ПРОВЕРЬ ССЫЛКУ ЕЩЕ РАЗ !!!
+        // !!! ВСТАВЬ ССЫЛКУ NGROK !!!
         const SERVER_URL = "https://unsucceeded-idella-violative.ngrok-free.dev";
         const headers = { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' };
 
-        // === ПРОВЕРКА СВЯЗИ ===
-        // Если через 5 секунд приложение не загрузится, покажем ошибку
         setTimeout(() => {
             const loader = document.getElementById('loader');
             if (loader.style.display !== 'none') {
@@ -208,8 +214,6 @@
         function checkAnim() {
             const isEnabled = localStorage.getItem('anim') !== 'off';
             document.getElementById('anim-status').innerText = isEnabled ? 'Вкл' : 'Выкл';
-            // Если анимация включена, скроем ее только когда загрузится баланс (см. loadBalance)
-            // Но на случай ошибки, таймер выше сработает
         }
         function toggleAnim() {
             const next = localStorage.getItem('anim') === 'off' ? 'on' : 'off';
@@ -224,16 +228,31 @@
                 const res = await fetch(SERVER_URL + '/api/files', {headers});
                 const data = await res.json();
                 const list = document.getElementById('files-list');
-                const select = document.getElementById('transfer-target');
-                list.innerHTML = ''; select.innerHTML = '';
+                const fromSelect = document.getElementById('transfer-source');
+                const toSelect = document.getElementById('transfer-target');
+                
+                list.innerHTML = ''; 
+                fromSelect.innerHTML = '';
+                toSelect.innerHTML = '';
+                
                 document.getElementById('active-file-name').innerText = data.active;
+                
                 data.files.forEach(f => {
                     const isActive = f === data.active;
                     list.innerHTML += `<div class="file-item ${isActive ? 'active' : ''}"><div onclick="setFile('${f}')" style="flex:1; display:flex; align-items:center"><span class="file-name">${f}</span>${isActive ? '<span class="file-check" style="margin-left:10px">✅</span>' : ''}</div>${f !== 'Главная Касса' ? `<button class="del-btn" style="width:30px; height:30px; margin-left:10px" onclick="deleteFile('${f}')">✕</button>` : ''}</div>`;
-                    if (!isActive) { const option = document.createElement("option"); option.text = f; option.value = f; select.add(option); }
+                    
+                    // Заполняем списки перевода
+                    const option1 = document.createElement("option"); option1.text = f; option1.value = f;
+                    const option2 = document.createElement("option"); option2.text = f; option2.value = f;
+                    fromSelect.add(option1);
+                    toSelect.add(option2);
                 });
+                // По умолчанию выбираем активную кассу в "Откуда"
+                fromSelect.value = data.active;
+
             } catch (e) { console.error(e); }
         }
+
         async function setFile(name) {
             if(!confirm(`Переключиться на кассу "${name}"?`)) return;
             await fetch(SERVER_URL + '/api/files/set', {method:'POST', headers, body:JSON.stringify({name})});
@@ -253,32 +272,40 @@
             if(ans.status === 'ok') { loadBalance(); loadFiles(); loadHistory(); showToast('Касса удалена'); } else { showToast(ans.message); }
         }
         function toggleTransferMode() { const block = document.getElementById('transfer-block'); block.style.display = block.style.display === 'none' ? 'block' : 'none'; }
+        
         async function doTransfer() {
-            const target = document.getElementById('transfer-target').value;
+            const fromK = document.getElementById('transfer-source').value;
+            const toK = document.getElementById('transfer-target').value;
             const amount = document.getElementById('transfer-amount').value;
-            if (!target) return showToast("Нет других касс");
+            
+            if (fromK === toK) return showToast("Кассы совпадают!");
             if (!amount) return showToast("Введите сумму");
-            if(!confirm(`Перевести ${amount} ₼ в кассу "${target}"?`)) return;
-            const res = await fetch(SERVER_URL + '/api/transfer', { method: 'POST', headers, body: JSON.stringify({ to_kassa: target, amount: amount }) });
+            
+            if(!confirm(`Перевести ${amount} ₼\nИЗ: ${fromK}\nВ: ${toK}?`)) return;
+            
+            const res = await fetch(SERVER_URL + '/api/transfer', { 
+                method: 'POST', headers, 
+                body: JSON.stringify({ from_kassa: fromK, to_kassa: toK, amount: amount }) 
+            });
             const ans = await res.json();
-            if(ans.status === 'ok') { document.getElementById('balance').innerText = ans.new_balance + ' ₼'; document.getElementById('transfer-amount').value = ''; document.getElementById('transfer-block').style.display = 'none'; showToast("Успешно переведено!"); } else { showToast("Ошибка перевода"); }
+            if(ans.status === 'ok') { 
+                document.getElementById('balance').innerText = ans.new_balance + ' ₼'; 
+                document.getElementById('transfer-amount').value = ''; 
+                document.getElementById('transfer-block').style.display = 'none'; 
+                showToast("Успешно переведено!"); 
+            } else { showToast(ans.message || "Ошибка перевода"); }
         }
 
         function loadBalance() {
-            // Главная функция загрузки. Если она сработает, уберем лоадер.
             fetch(SERVER_URL + '/api/balance', {headers})
             .then(r=>r.json())
             .then(d=>{
                 document.getElementById('balance').innerText = d.balance + ' ₼';
-                // УСПЕХ: Прячем загрузку
                 const loader = document.getElementById('loader');
                 loader.style.opacity = '0';
                 setTimeout(()=>loader.style.display='none', 500);
             })
-            .catch(e => {
-                // Ошибка связи ловится таймером выше, но можно и тут
-                console.log("Ошибка загрузки баланса");
-            });
+            .catch(e => { console.log("Ошибка баланса"); });
             loadFiles();
         }
 
@@ -355,5 +382,3 @@
     </script>
 </body>
 </html>
-
-
